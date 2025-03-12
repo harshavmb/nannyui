@@ -163,8 +163,8 @@ const Contact = () => {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium">Email</h4>
-                        <a href="mailto:support@example.com" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                          support@example.com
+                        <a href="mailto:support@nannyai.de" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                          support@nannyai.de
                         </a>
                       </div>
                     </div>
@@ -187,21 +187,21 @@ const Contact = () => {
                   <h3 className="font-medium mb-6">Connect With Us</h3>
                   
                   <div className="space-y-4">
-                    <a href="#" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <a href="https://github.com/harshavmb/nannyai" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="h-8 w-8 rounded-full bg-[#333]/10 flex items-center justify-center flex-shrink-0">
                         <Github className="h-4 w-4 text-[#333]" />
                       </div>
                       <span>GitHub</span>
                     </a>
                     
-                    <a href="#" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <a href="https://x.com/nannyai" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="h-8 w-8 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center flex-shrink-0">
                         <Twitter className="h-4 w-4 text-[#1DA1F2]" />
                       </div>
                       <span>Twitter</span>
                     </a>
                     
-                    <a href="#" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <a href="https://linkedin.com/nannyai" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="h-8 w-8 rounded-full bg-[#0A66C2]/10 flex items-center justify-center flex-shrink-0">
                         <Linkedin className="h-4 w-4 text-[#0A66C2]" />
                       </div>

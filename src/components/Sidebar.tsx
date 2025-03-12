@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <Server className="h-6 w-6 text-sidebar-primary" />
-            <span className="font-bold text-sidebar-foreground">Agent API</span>
+            <span className="font-bold text-sidebar-foreground">NANNYAI</span>
           </div>
         )}
         {collapsed && <Server className="h-6 w-6 text-sidebar-primary mx-auto" />}
@@ -102,7 +102,7 @@ const Sidebar: React.FC = () => {
       
       <div className="p-4 border-t border-sidebar-border">
         <a 
-          href="https://github.com" 
+          href="https://github.com/harshavmb/nannyai" 
           target="_blank" 
           rel="noopener noreferrer" 
           className={cn(
