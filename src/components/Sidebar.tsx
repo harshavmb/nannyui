@@ -102,7 +102,7 @@ const Sidebar: React.FC = () => {
       
       <div className="p-4 border-t border-sidebar-border">
         <a 
-          href="https://github.com/harshavmb/nannyai" 
+          href="https://github.com/harshavmb/nannyapi" 
           target="_blank" 
           rel="noopener noreferrer" 
           className={cn(

@@ -187,7 +187,7 @@ const Contact = () => {
                   <h3 className="font-medium mb-6">Connect With Us</h3>
                   
                   <div className="space-y-4">
-                    <a href="https://github.com/harshavmb/nannyai" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <a href="https://github.com/harshavmb/nannyapi" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="h-8 w-8 rounded-full bg-[#333]/10 flex items-center justify-center flex-shrink-0">
                         <Github className="h-4 w-4 text-[#333]" />
                       </div>
