@@ -1,11 +1,13 @@
+"use client";
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { motion } from 'framer-motion';
 import { Server, Key, Users, Clock, ArrowUpRight, Activity } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import Cookies from 'js-cookie';
 
 const Dashboard = () => {
   const stats = [
@@ -14,6 +16,41 @@ const Dashboard = () => {
     { title: 'Total Users', value: '7', icon: Users, change: '+0%' },
     { title: 'Uptime', value: '99.9%', icon: Clock, change: '+0.2%' },
   ];
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchData = async () => {
+      try {
+         const response = await fetch('http://localhost:8080/github/profile', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'http://localhost:8081',},
+            credentials: 'include',
+         });
+         if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+         const data = await response.json();
+
+         // Set the userinfo state
+         const encodedUserInfo = encodeURIComponent(JSON.stringify(data));
+         Cookies.set('userinfo', encodedUserInfo, {
+          expires: 7, // Expires in 7 days
+          path: '/',
+          HttpOnly: false,
+          SameSite: 'None',
+        });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    const userInfoCookie = Cookies.get('userinfo');
+    if (!userInfoCookie) {
+      fetchData()
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex">

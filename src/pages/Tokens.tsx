@@ -1,14 +1,49 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import Cookies from 'js-cookie';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
+  const [authTokens, setAuthTokens] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchAuthTokens = async () => {
+      const userInfoCookie = Cookies.get('userinfo');
+
+      if (userInfoCookie) {
+        try {
+          const response = await fetch('http://localhost:8080/api/auth-tokens', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'http://localhost:8081',
+              'Cookie': `userinfo=${userInfoCookie}`,
+            },
+            credentials: 'include',
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+  
+          // Set the authTokens state
+          setAuthTokens(data);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
+    };
+
+    fetchAuthTokens();
+  }
+  , []);
   
   const tokens = [
     { 

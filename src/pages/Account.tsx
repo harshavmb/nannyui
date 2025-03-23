@@ -18,8 +18,6 @@ const Account = () => {
     const userInfoCookie = Cookies.get('userinfo');
     const authTokenCookie = Cookies.get('Authorization');
 
-    console.log("userInfoCookie:", userInfoCookie); // Log the raw cookie value
-
     if (userInfoCookie) {
       try {
         // Decode the URL-encoded cookie value
@@ -36,7 +34,6 @@ const Account = () => {
       setIsAuthorized(true);
     }
   }, []);
-  console.log(profile);
 
   const githubUsername = profile?.html_url ? profile.html_url.split('/').pop() : '';
   const decodedName = profile?.name ? decodeURIComponent(profile.name).replace(/\+/g, ' ') : '';

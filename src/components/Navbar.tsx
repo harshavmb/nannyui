@@ -1,9 +1,27 @@
 
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import { Bell, User, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Cookies from 'js-cookie';
 
 const Navbar: React.FC = () => {
+  const [userName, setUserName] = useState('Nanny User');
+
+  useEffect(() => {
+    const userInfoCookie = Cookies.get('userinfo');
+
+    if (userInfoCookie) {
+      try {
+        const decodedUserInfo = decodeURIComponent(userInfoCookie);
+        const userInfo = JSON.parse(decodedUserInfo);
+        setUserName(userInfo.name || 'Nanny User'); // Use a default value if name is not available
+      } catch (error) {
+        console.error("Error parsing userinfo cookie:", error);
+      }
+    }
+  }, []);
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
@@ -33,7 +51,7 @@ const Navbar: React.FC = () => {
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <User className="h-4 w-4" />
             </div>
-            <span className="text-sm font-medium">User Name</span>
+            <span className="text-sm font-medium">{userName}</span>
           </div>
         </div>
       </div>
