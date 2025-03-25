@@ -26,8 +26,8 @@ jobs:
         run: npm ci
         
       - name: Lint code
-        run: npm run lint || echo "Linting failed but continuing workflow"
-      
+        run: npm run lint
+        
       - name: Type check
         run: npm run typecheck || echo "Type checking failed but continuing workflow"
         
