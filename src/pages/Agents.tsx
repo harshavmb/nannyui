@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import withAuth from '@/utils/withAuth';
 import { 
   Server, 
   Plus, 
@@ -18,6 +19,43 @@ import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 
 const Agents = () => {
+  const [nannyAgents, setAgents] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchAgents = async () => {
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+
+      if (accessToken) {
+        try {
+          const response = await fetch('http://localhost:8080/api/agents', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'http://localhost:8081',
+              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
+            },
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // Set the agents state
+          setAgents(data);          
+        } catch (error) {
+          console.error('Error fetching agents:', error);
+        }
+      } else {
+        console.error('Access token not found in localStorage');
+      }
+    };
+
+    fetchAgents();
+  }, []);
   const agents = [
     { 
       name: 'prod-server-01', 
@@ -214,4 +252,4 @@ const Agents = () => {
   );
 };
 
-export default Agents;
+export default withAuth(Agents);

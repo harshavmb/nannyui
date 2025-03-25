@@ -6,31 +6,64 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
-import { useRouter } from 'next/router';
-import Cookies from 'js-cookie';
+import withAuth from '@/utils/withAuth';
 
 const Account = () => {
   const [profile, setProfile] = useState(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Read the userinfo cookie
-    const userInfoCookie = Cookies.get('userinfo');
-    const authTokenCookie = Cookies.get('Authorization');
+    // Fetch data from the API
+    const fetchAccount = async () => {
+      // Read the userinfo cookie      
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+      if (accessToken) {
+        try {
+          // Fetch user ID from the API
+          const userIDResponse = await fetch('http://localhost:8080/api/user-auth-token', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'http://localhost:8081',
+              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
+            },
+            credentials: 'include',
+          });
 
-    if (userInfoCookie) {
-      try {
-        // Decode the URL-encoded cookie value
-        const decodedUserInfo = decodeURIComponent(userInfoCookie);
-        // Parse the JSON string
-        const userInfo = JSON.parse(decodedUserInfo);
-        setProfile(userInfo);
-      } catch (error) {
-        console.error("Error parsing userinfo cookie:", error);
+          if (!userIDResponse.ok) {
+            throw new Error(`Failed to fetch user ID: ${userIDResponse.status}`);
+          }
+
+          const userID = await userIDResponse.json();
+
+           // Fetch user profile using the user ID
+           const profileResponse = await fetch(`http://localhost:8080/api/user/${userID}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'http://localhost:8081',
+              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
+            },
+            credentials: 'include',
+          });
+
+          if (!profileResponse.ok) {
+            throw new Error(`Failed to fetch user profile: ${profileResponse.status}`);
+          }
+
+          const profileData = await profileResponse.json();
+          setProfile(profileData); // Set the profile state       
+        } catch (error) {
+          console.error("Error fetching userinfo from API:", error);
+        }
+      } else {
+        console.error('Access token not found in localStorage');
       }
-    }
+    };
+    
+    fetchAccount();
 
-    if (authTokenCookie) {
+    if (localStorage.getItem('access_token')) {
       setIsAuthorized(true);
     }
   }, []);
@@ -213,4 +246,4 @@ const Account = () => {
   );
 };
 
-export default Account;
+export default withAuth(Account);

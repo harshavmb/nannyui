@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import Cookies from 'js-cookie';
+import withAuth from '@/utils/withAuth';
 
 const Dashboard = () => {
   const stats = [
@@ -20,35 +21,48 @@ const Dashboard = () => {
   useEffect(() => {
     // Fetch data from the API
     const fetchData = async () => {
-      try {
-         const response = await fetch('http://localhost:8080/github/profile', {
+      try {        
+        const response = await fetch(`http://localhost:8080/github/profile`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',},
+              'Access-Control-Allow-Origin': 'http://localhost:8081',
+            },
             credentials: 'include',
-         });
-         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-         const data = await response.json();
+        });        
 
-         // Set the userinfo state
-         const encodedUserInfo = encodeURIComponent(JSON.stringify(data));
-         Cookies.set('userinfo', encodedUserInfo, {
-          expires: 7, // Expires in 7 days
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        // Check for only refresh_token content response
+        if (data.refresh_token && !data.access_token && !data.user) {          
+          // We do nothing as refresh_token is still valid
+          return;
+        }
+        
+        // Set access_token in localStorage
+        localStorage.setItem('access_token', data.access_token);
+
+        // Set userinfo cookie
+        const encodedUserInfo = encodeURIComponent(JSON.stringify(data.user));
+        Cookies.set('userinfo', encodedUserInfo, {
+          expires: 7,
           path: '/',
-          HttpOnly: false,
-          SameSite: 'None',
-        });
+          SameSite: 'Lax',
+          secure: false,
+        });            
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
-    const userInfoCookie = Cookies.get('userinfo');
-    if (!userInfoCookie) {
-      fetchData()
+    // Check if refresh_token and access_token are already present
+    const refreshToken = Cookies.get('refresh_token');
+    const accessToken = localStorage.getItem('access_token');
+    if (!refreshToken || !accessToken) {
+      fetchData();
     }
   }, []);
 
@@ -171,4 +185,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default withAuth(Dashboard);

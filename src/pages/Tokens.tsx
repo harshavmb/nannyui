@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
-import Cookies from 'js-cookie';
+import withAuth from '@/utils/withAuth';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
@@ -15,16 +15,16 @@ const Tokens = () => {
   useEffect(() => {
     // Fetch data from the API
     const fetchAuthTokens = async () => {
-      const userInfoCookie = Cookies.get('userinfo');
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
 
-      if (userInfoCookie) {
+      if (accessToken) {
         try {
           const response = await fetch('http://localhost:8080/api/auth-tokens', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
               'Access-Control-Allow-Origin': 'http://localhost:8081',
-              'Cookie': `userinfo=${userInfoCookie}`,
+              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
             },
             credentials: 'include',
           });
@@ -34,10 +34,12 @@ const Tokens = () => {
           const data = await response.json();
   
           // Set the authTokens state
-          setAuthTokens(data);
+          setAuthTokens(data);          
         } catch (error) {
           console.error('Error fetching data:', error);
         }
+      } else {
+        console.error('Access token not found in localStorage');
       }
     };
 
@@ -187,4 +189,4 @@ const Tokens = () => {
   );
 };
 
-export default Tokens;
+export default withAuth(Tokens);
