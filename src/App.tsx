@@ -14,6 +14,8 @@ import Agents from "./pages/Agents";
 import Documentation from "./pages/Documentation";
 import Contact from "./pages/Contact";
 import Cookies from "./pages/Cookies";
+import Status from "./pages/Status";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 
@@ -37,6 +39,8 @@ const App = () => (
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cookies" element={<Cookies />} />
+              <Route path="/status" element={<Status />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

@@ -11,7 +11,9 @@ import {
   BookOpen,
   Mail,
   Github,
-  LogOut
+  LogOut,
+  Activity,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -54,6 +56,8 @@ const Sidebar: React.FC = () => {
     { to: '/account', icon: User, label: 'Account' },
     { to: '/tokens', icon: Key, label: 'Auth Tokens' },
     { to: '/agents', icon: Server, label: 'Agents' },
+    { to: '/status', icon: Activity, label: 'API Status' },
+    { to: '/pricing', icon: DollarSign, label: 'Pricing' },
     { to: '/documentation', icon: BookOpen, label: 'Documentation' },
     { to: '/contact', icon: Mail, label: 'Contact' },
   ];
