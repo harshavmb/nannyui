@@ -1,14 +1,45 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
+  const [authTokens, setAuthTokens] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchAuthTokens = async () => {
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+
+      if (accessToken) {
+        try {
+          const response = await fetchApi('api/auth-tokens', {
+            method: 'GET',
+          }, accessToken);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+  
+          // Set the authTokens state
+          setAuthTokens(data);          
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      } else {
+        console.error('Access token not found in localStorage');
+      }
+    };
+
+    fetchAuthTokens();
+  }, []);
   
   const tokens = [
     { 
@@ -152,4 +183,4 @@ const Tokens = () => {
   );
 };
 
-export default Tokens;
+export default withAuth(Tokens);

@@ -5,11 +5,16 @@ import { Github } from 'lucide-react';
 import LoginHeader from '@/components/LoginHeader';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import Footer from '@/components/Footer';
+import { getBackendURL } from '@/utils/config';
 
 const Index = () => {
-  const handleGitHubLogin = () => {
-    // GitHub login logic would go here
-    window.location.href = "/dashboard";
+  const handleGitHubLogin = async () => {
+    try {
+      // Redirect the user to the backend's /github/login endpoint
+      window.location.href = `${getBackendURL()}/github/login`;
+    } catch (error) {
+      console.error("Error initiating GitHub login:", error);
+    }
   };
 
   return (

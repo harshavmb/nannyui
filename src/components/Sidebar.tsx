@@ -11,7 +11,9 @@ import {
   BookOpen,
   Mail,
   Github,
-  LogOut
+  LogOut,
+  Activity,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -54,6 +56,8 @@ const Sidebar: React.FC = () => {
     { to: '/account', icon: User, label: 'Account' },
     { to: '/tokens', icon: Key, label: 'Auth Tokens' },
     { to: '/agents', icon: Server, label: 'Agents' },
+    { to: '/status', icon: Activity, label: 'API Status' },
+    { to: '/pricing', icon: DollarSign, label: 'Pricing' },
     { to: '/documentation', icon: BookOpen, label: 'Documentation' },
     { to: '/contact', icon: Mail, label: 'Contact' },
   ];
@@ -72,7 +76,7 @@ const Sidebar: React.FC = () => {
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <Server className="h-6 w-6 text-sidebar-primary" />
-            <span className="font-bold text-sidebar-foreground">Agent API</span>
+            <span className="font-bold text-sidebar-foreground">NANNYAI</span>
           </div>
         )}
         {collapsed && <Server className="h-6 w-6 text-sidebar-primary mx-auto" />}
@@ -102,7 +106,7 @@ const Sidebar: React.FC = () => {
       
       <div className="p-4 border-t border-sidebar-border">
         <a 
-          href="https://github.com" 
+          href="https://github.com/harshavmb/nannyapi" 
           target="_blank" 
           rel="noopener noreferrer" 
           className={cn(

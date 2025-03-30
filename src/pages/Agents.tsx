@@ -1,6 +1,6 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import withAuth from '@/utils/withAuth';
 import { 
   Server, 
   Plus, 
@@ -16,8 +16,41 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import { fetchApi } from '@/utils/config';
 
 const Agents = () => {
+  const [nannyAgents, setAgents] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchAgents = async () => {
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+
+      if (accessToken) {
+        try {
+          const response = await fetchApi('api/agents', {
+            method: 'GET',
+          }, accessToken);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // Set the agents state
+          setAgents(data);          
+        } catch (error) {
+          console.error('Error fetching agents:', error);
+        }
+      } else {
+        console.error('Access token not found in localStorage');
+      }
+    };
+
+    fetchAgents();
+  }, []);
+
   const agents = [
     { 
       name: 'prod-server-01', 
@@ -214,4 +247,4 @@ const Agents = () => {
   );
 };
 
-export default Agents;
+export default withAuth(Agents);

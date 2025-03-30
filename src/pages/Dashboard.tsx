@@ -1,11 +1,16 @@
+"use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, Key, Users, Clock, ArrowUpRight, Activity } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import Cookies from 'js-cookie';
+import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
+import { setAccessToken } from '@/utils/authUtils';
 
 const Dashboard = () => {
   const stats = [
@@ -14,6 +19,49 @@ const Dashboard = () => {
     { title: 'Total Users', value: '7', icon: Users, change: '+0%' },
     { title: 'Uptime', value: '99.9%', icon: Clock, change: '+0.2%' },
   ];
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchData = async () => {
+      try {        
+        const response = await fetchApi('github/profile', {
+          method: 'GET',
+        });        
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        // Check for only refresh_token content response
+        if (data.refresh_token && !data.access_token && !data.user) {          
+          // We do nothing as refresh_token is still valid
+          return;
+        }
+        
+        // Set access_token in localStorage
+        setAccessToken(data.access_token);
+
+        // Set userinfo cookie
+        const encodedUserInfo = encodeURIComponent(JSON.stringify(data.user));
+        Cookies.set('userinfo', encodedUserInfo, {
+          expires: 7,
+          path: '/',
+          SameSite: 'Lax',
+          secure: window.location.protocol === 'https:',
+        });            
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // Check if refresh_token and access_token are already present
+    const refreshToken = Cookies.get('refresh_token');
+    const accessToken = localStorage.getItem('access_token');
+    if (!refreshToken || !accessToken) {
+      fetchData();
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -134,4 +182,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default withAuth(Dashboard);

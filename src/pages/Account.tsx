@@ -1,13 +1,64 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Github, Calendar, Edit } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
 
 const Account = () => {
+  const [profile, setProfile] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchAccount = async () => {
+      // Read the userinfo cookie      
+      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+      if (accessToken) {
+        try {
+          // Fetch user ID from the API
+          const userIDResponse = await fetchApi('api/user-auth-token', {
+            method: 'GET',
+          }, accessToken);
+
+          if (!userIDResponse.ok) {
+            throw new Error(`Failed to fetch user ID: ${userIDResponse.status}`);
+          }
+
+          const userID = await userIDResponse.json();
+
+          // Fetch user profile using the user ID
+          const profileResponse = await fetchApi(`api/user/${userID}`, {
+            method: 'GET',
+          }, accessToken);
+
+          if (!profileResponse.ok) {
+            throw new Error(`Failed to fetch user profile: ${profileResponse.status}`);
+          }
+
+          const profileData = await profileResponse.json();
+          setProfile(profileData); // Set the profile state       
+        } catch (error) {
+          console.error("Error fetching userinfo from API:", error);
+        }
+      } else {
+        console.error('Access token not found in localStorage');
+      }
+    };
+    
+    fetchAccount();
+
+    if (localStorage.getItem('access_token')) {
+      setIsAuthorized(true);
+    }
+  }, []);
+
+  const githubUsername = profile?.html_url ? profile.html_url.split('/').pop() : '';
+  const decodedName = profile?.name ? decodeURIComponent(profile.name).replace(/\+/g, ' ') : '';
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -31,13 +82,13 @@ const Account = () => {
                     <User className="h-12 w-12 text-primary" />
                   </div>
                   
-                  <h2 className="mt-4 text-xl font-semibold">User Name</h2>
+                  <h2 className="mt-4 text-xl font-semibold">{decodedName}</h2>
                   <p className="text-muted-foreground">Administrator</p>
                   
                   <div className="mt-6 py-4 border-t border-b border-border/40">
                     <div className="flex items-center justify-center space-x-2 text-sm">
                       <Github className="h-4 w-4" />
-                      <span>github-username</span>
+                      <span>{profile?.html_url}</span>
                     </div>
                   </div>
                   
@@ -54,7 +105,7 @@ const Account = () => {
                   <div className="space-y-4">
                     <div className="flex items-center">
                       <Mail className="h-4 w-4 text-muted-foreground mr-2" />
-                      <span className="text-sm">user@example.com</span>
+                      <span className="text-sm">{profile?.email}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
@@ -84,7 +135,7 @@ const Account = () => {
                       </label>
                       <input
                         type="text"
-                        defaultValue="User Name"
+                        defaultValue={decodedName}
                         className="w-full px-3 py-2 rounded-md border border-border bg-background/50"
                       />
                     </div>
@@ -94,7 +145,7 @@ const Account = () => {
                       </label>
                       <input
                         type="email"
-                        defaultValue="user@example.com"
+                        defaultValue={profile?.email}
                         className="w-full px-3 py-2 rounded-md border border-border bg-background/50"
                       />
                     </div>
@@ -104,7 +155,7 @@ const Account = () => {
                       </label>
                       <input
                         type="text"
-                        defaultValue="github-username"
+                        defaultValue={githubUsername}
                         className="w-full px-3 py-2 rounded-md border border-border bg-background/50"
                       />
                     </div>
@@ -183,4 +234,4 @@ const Account = () => {
   );
 };
 
-export default Account;
+export default withAuth(Account);
