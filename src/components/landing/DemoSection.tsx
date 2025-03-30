@@ -65,7 +65,7 @@ const AgentDemo = () => {
           <span className="text-green-400">   Active: active (running) since Tue 2023-10-10 14:23:45 UTC; 3 days ago</span><br />
           <span className="text-blue-400">[NANNYAI]</span> Checking for slow queries<br />
           <span className="text-white/70">$</span> cat /var/log/postgresql/postgresql-13-main.log | grep "duration:" | tail -5<br />
-          <span className="text-white/60">2023-10-13 09:15:42 UTC [5413]: [3-1] user=app,db=production LOG: duration: 15243.922 ms statement: SELECT * FROM large_table WHERE timestamp > '2023-10-12'</span><br />
+          <span className="text-white/60">2023-10-13 09:15:42 UTC [5413]: [3-1] user=app,db=production LOG: duration: 15243.922 ms statement: SELECT * FROM large_table WHERE timestamp &gt; &apos;2023-10-12&apos;</span><br />
           <span className="text-blue-400">[NANNYAI]</span> Analyzing database performance<br />
           <span className="text-white/70">$</span> psql -c "SELECT datname, numbackends FROM pg_stat_database"<br />
           <span className="text-white/60">  datname  | numbackends</span><br />
