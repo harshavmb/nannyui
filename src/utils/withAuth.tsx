@@ -1,80 +1,85 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { validateAccessToken, refreshTokens, getAccessToken } from './authUtils';
+import { useToast } from '@/components/ui/use-toast';
+
+// Higher-order component for authentication
 const withAuth = (WrappedComponent: React.ComponentType) => {
   const AuthWrapper = (props: any) => {
     const navigate = useNavigate();
-
+    const location = useLocation();
+    const { toast } = useToast();
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    
     useEffect(() => {
+      // Skip auth check if already on the login page
+      if (location.pathname === '/') {
+        setIsAuthenticated(false);
+        return;
+      }
+      
+      let isMounted = true;
+      
       const checkAuth = async () => {
-        const accessToken = localStorage.getItem('access_token');
-
+        // Check if we have an access token
+        const accessToken = getAccessToken();
+        
         if (!accessToken) {
-          // Redirect to GitHub login if no access token is found
-          navigate('/');
-          return;
-        }
-
-        try {
-          // Validate the access token with the backend
-          const response = await fetch('http://localhost:8080/api/user-auth-token', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-            },
-            credentials: 'include',
-          });
-
-          if (response.status === 401) {
-            // If access token is invalid, try refreshing the tokens
-            const refreshResponse = await fetch('http://localhost:8080/api/refresh-token', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include',
-            });
-
-            if (!refreshResponse.ok) {
-              // Handle first-time login scenario
-              if (refreshResponse.status === 400) {
-                console.warn('First-time login detected. Redirecting to GitHub login...');
-                return; // Allow the user to proceed without redirecting
-              }
-              throw new Error('Failed to refresh tokens');
-            }
-
-            const data = await refreshResponse.json();
-
-            // Set the new access_token in localStorage
-            localStorage.setItem('access_token', data.access_token);
-
-            // Set the new refresh_token as a cookie
-            Cookies.set('refresh_token', data.refresh_token, {
-              expires: 7,
-              path: '/',
-              SameSite: 'None',
-              secure: true,
-            });
-          } else if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          // No access token, try to refresh
+          const refreshSuccessful = await refreshTokens();
+          
+          if (!refreshSuccessful && isMounted) {
+            // Both checks failed, redirect to login
+            console.log('Authentication failed, redirecting to login');
+            setIsAuthenticated(false);
+            navigate('/', { replace: true });
+            return;
           }
-        } catch (error) {
-          console.error('Authentication error:', error);
-
-          // Redirect to GitHub login if refresh token is expired
-          navigate('/');
+        } else {
+          // Validate existing access token
+          const isValid = await validateAccessToken();
+          
+          if (!isValid) {
+            // Access token invalid, try refresh
+            const refreshSuccessful = await refreshTokens();
+            
+            if (!refreshSuccessful && isMounted) {
+              // Refresh failed too, redirect to login
+              console.log('Token validation and refresh failed, redirecting to login');
+              setIsAuthenticated(false);
+              navigate('/', { replace: true });
+              return;
+            }
+          }
+        }
+        
+        // If we got here, authentication is successful
+        if (isMounted) {
+          setIsAuthenticated(true);
         }
       };
-
+      
       checkAuth();
-    }, [navigate]);
-
+      
+      return () => {
+        isMounted = false;
+      };
+    }, [navigate, location.pathname]);
+    
+    // Show loading while checking authentication
+    if (isAuthenticated === null && location.pathname !== '/') {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+    
+    // Render the wrapped component if authenticated or on login page
     return <WrappedComponent {...props} />;
   };
-
+  
   return AuthWrapper;
 };
 
