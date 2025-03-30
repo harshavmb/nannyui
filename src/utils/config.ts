@@ -17,7 +17,7 @@ export const getBackendURL = (): string => {
   const env = getEnvironment();
   switch (env) {
     case 'production':
-      return 'https://api.nannyai.com';
+      return 'https://api.nannyai.dev';
     case 'test':
       return 'http://localhost:8080';
     case 'development':

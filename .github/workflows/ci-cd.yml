@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, nannyifi ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -79,4 +79,4 @@ jobs:
       - name: Deploy to production
         run: |
           echo "Deploying to production..."
-          # Add your deployment commands here
+          # would be added later

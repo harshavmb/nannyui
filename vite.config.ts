@@ -19,7 +19,7 @@ const getEnvironmentVariables = (mode: string) => {
 
   // Production-specific variables
   const production = {
-    'VITE_API_URL': JSON.stringify('https://api.nannyai.com'),
+    'VITE_API_URL': JSON.stringify('https://api.nannyai.dev'),
     'VITE_ENV': JSON.stringify('production')
   };
 
