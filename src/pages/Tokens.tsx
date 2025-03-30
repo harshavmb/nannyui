@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
@@ -5,65 +6,71 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import ErrorBanner from '@/components/ErrorBanner';
 import withAuth from '@/utils/withAuth';
 import { fetchApi } from '@/utils/config';
+import { safeFetch } from '@/utils/errorHandling';
+import { placeholderTokens } from '@/mocks/placeholderData';
+import { useToast } from '@/hooks/use-toast';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
-  const [authTokens, setAuthTokens] = useState([]);
+  const [tokens, setTokens] = useState(placeholderTokens);
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Fetch data from the API
     const fetchAuthTokens = async () => {
-      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+      setLoading(true);
+      const accessToken = localStorage.getItem('access_token');
 
       if (accessToken) {
         try {
-          const response = await fetchApi('api/auth-tokens', {
-            method: 'GET',
-          }, accessToken);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          const result = await safeFetch(
+            fetchApi('api/auth-tokens', { method: 'GET' }, accessToken),
+            placeholderTokens
+          );
+
+          if (result.data) {
+            setTokens(result.data);
+            setHasError(false);
+          } else {
+            setHasError(true);
           }
-          const data = await response.json();
-  
-          // Set the authTokens state
-          setAuthTokens(data);          
         } catch (error) {
-          console.error('Error fetching data:', error);
+          console.error('Error fetching tokens:', error);
+          setHasError(true);
+        } finally {
+          setLoading(false);
         }
       } else {
         console.error('Access token not found in localStorage');
+        setLoading(false);
+        setHasError(true);
       }
     };
 
     fetchAuthTokens();
   }, []);
-  
-  const tokens = [
-    { 
-      name: 'Production API Key', 
-      token: 'sk_prod_xxxxxxxxxxxxxxxxxxx', 
-      type: 'Production',
-      created: 'Apr 15, 2023',
-      lastUsed: '2 hours ago'
-    },
-    { 
-      name: 'Development API Key', 
-      token: 'sk_dev_xxxxxxxxxxxxxxxxxxx', 
-      type: 'Development',
-      created: 'Apr 18, 2023',
-      lastUsed: '5 mins ago'
-    },
-    { 
-      name: 'Testing API Key', 
-      token: 'sk_test_xxxxxxxxxxxxxxxxxxx', 
-      type: 'Testing',
-      created: 'May 2, 2023',
-      lastUsed: '1 day ago'
-    },
-  ];
+
+  const handleCopyToken = (token: string) => {
+    navigator.clipboard.writeText(token)
+      .then(() => {
+        toast({
+          title: "Token Copied",
+          description: "API token has been copied to clipboard",
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Failed to Copy",
+          description: "Could not copy token to clipboard",
+          variant: "destructive",
+        });
+      });
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -74,6 +81,13 @@ const Tokens = () => {
         
         <TransitionWrapper className="flex-1 overflow-y-auto p-6">
           <div className="container pb-8">
+            {hasError && (
+              <ErrorBanner 
+                message="There was an issue loading your authentication tokens. Some data may not be current."
+                onDismiss={() => setHasError(false)}
+              />
+            )}
+            
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">Auth Tokens</h1>
@@ -125,7 +139,7 @@ const Tokens = () => {
             <div className="space-y-4">
               {tokens.map((token, i) => (
                 <motion.div
-                  key={token.name}
+                  key={token.id || i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * i, duration: 0.3 }}
@@ -149,7 +163,10 @@ const Tokens = () => {
                           <div className="px-3 py-1 bg-muted/50 rounded-md text-sm font-mono">
                             {showTokens ? token.token : '••••••••••••••••••••••••••'}
                           </div>
-                          <button className="p-1.5 rounded-md hover:bg-muted/80 transition-colors">
+                          <button 
+                            className="p-1.5 rounded-md hover:bg-muted/80 transition-colors"
+                            onClick={() => handleCopyToken(token.token)}
+                          >
                             <Copy className="h-3.5 w-3.5" />
                           </button>
                         </div>
