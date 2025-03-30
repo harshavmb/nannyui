@@ -1,0 +1,37 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+    ## TO BE ADDED LATER TO-DO
+    #   - name: Deploy to Cloudflare Pages
+    #     uses: cloudflare/pages-action@1
+    #     with:
+    #       apiToken: ${{ secrets.CF_API_TOKEN }}
+    #       accountId: ${{ secrets.CF_ACCOUNT_ID }}
+    #       projectName: nannyui
+    #       directory: dist
+    #       branch: main
+    #       gitHubToken: ${{ secrets.GITHUB_TOKEN }}
