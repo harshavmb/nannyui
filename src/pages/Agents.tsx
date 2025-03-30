@@ -16,83 +16,60 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import ErrorBanner from '@/components/ErrorBanner';
 import { fetchApi } from '@/utils/config';
+import { safeFetch } from '@/utils/errorHandling';
+import { placeholderAgents } from '@/mocks/placeholderData';
 
 const Agents = () => {
-  const [nannyAgents, setAgents] = useState([]);
+  const [agents, setAgents] = useState(placeholderAgents);
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     // Fetch data from the API
     const fetchAgents = async () => {
-      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+      setLoading(true);
+      const accessToken = localStorage.getItem('access_token');
 
       if (accessToken) {
         try {
-          const response = await fetchApi('api/agents', {
-            method: 'GET',
-          }, accessToken);
+          const result = await safeFetch(
+            fetchApi('api/agents', { method: 'GET' }, accessToken),
+            placeholderAgents
+          );
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          if (result.data) {
+            setAgents(result.data);
+            setHasError(false);
+          } else {
+            setHasError(true);
           }
-
-          const data = await response.json();
-
-          // Set the agents state
-          setAgents(data);          
         } catch (error) {
           console.error('Error fetching agents:', error);
+          setHasError(true);
+        } finally {
+          setLoading(false);
         }
       } else {
         console.error('Access token not found in localStorage');
+        setLoading(false);
+        setHasError(true);
       }
     };
 
     fetchAgents();
   }, []);
 
-  const agents = [
-    { 
-      name: 'prod-server-01', 
-      status: 'online', 
-      version: 'v1.5.2',
-      location: 'US East',
-      lastSeen: '2 mins ago',
-      type: 'Production'
-    },
-    { 
-      name: 'prod-server-02', 
-      status: 'online', 
-      version: 'v1.5.2',
-      location: 'US West',
-      lastSeen: 'Just now',
-      type: 'Production'
-    },
-    { 
-      name: 'staging-server-01', 
-      status: 'offline', 
-      version: 'v1.5.1',
-      location: 'EU Central',
-      lastSeen: '3 days ago',
-      type: 'Staging'
-    },
-    { 
-      name: 'dev-server-01', 
-      status: 'online', 
-      version: 'v1.6.0-beta',
-      location: 'US East',
-      lastSeen: '30 mins ago',
-      type: 'Development'
-    },
-    { 
-      name: 'dev-server-02', 
-      status: 'online', 
-      version: 'v1.6.0-beta',
-      location: 'Asia Pacific',
-      lastSeen: '15 mins ago',
-      type: 'Development'
-    },
-  ];
+  // Filter agents based on search term
+  const filteredAgents = searchTerm 
+    ? agents.filter(agent => 
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.location.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : agents;
 
   return (
     <div className="min-h-screen flex">
@@ -103,6 +80,13 @@ const Agents = () => {
         
         <TransitionWrapper className="flex-1 overflow-y-auto p-6">
           <div className="container pb-8">
+            {hasError && (
+              <ErrorBanner 
+                message="There was an issue loading your agents. Some data may not be current."
+                onDismiss={() => setHasError(false)}
+              />
+            )}
+            
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">Agents</h1>
@@ -124,6 +108,8 @@ const Agents = () => {
                   type="text"
                   placeholder="Search agents..."
                   className="w-full h-10 pl-10 pr-4 rounded-lg bg-muted/50 border border-border/50 focus:outline-none focus:ring-1 focus:ring-primary/50 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
@@ -147,9 +133,9 @@ const Agents = () => {
                 <div>Location</div>
               </div>
               
-              {agents.map((agent, i) => (
+              {filteredAgents.map((agent, i) => (
                 <motion.div
-                  key={agent.name}
+                  key={agent.id || i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * i, duration: 0.3 }}

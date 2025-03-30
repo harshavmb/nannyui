@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,23 +8,26 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import ErrorBanner from '@/components/ErrorBanner';
 import Cookies from 'js-cookie';
 import withAuth from '@/utils/withAuth';
 import { fetchApi } from '@/utils/config';
 import { setAccessToken } from '@/utils/authUtils';
+import { safeFetch } from '@/utils/errorHandling';
+import { placeholderStats, placeholderActivities } from '@/mocks/placeholderData';
 
 const Dashboard = () => {
-  const stats = [
-    { title: 'Total Agents', value: '24', icon: Server, change: '+12%' },
-    { title: 'Active Tokens', value: '18', icon: Key, change: '+5%' },
-    { title: 'Total Users', value: '7', icon: Users, change: '+0%' },
-    { title: 'Uptime', value: '99.9%', icon: Clock, change: '+0.2%' },
-  ];
+  const [hasError, setHasError] = useState(false);
+  const [stats, setStats] = useState(placeholderStats);
+  const [activities, setActivities] = useState(placeholderActivities);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch data from the API
     const fetchData = async () => {
-      try {        
+      try {
+        setLoading(true);
+        
         const response = await fetchApi('github/profile', {
           method: 'GET',
         });        
@@ -31,6 +35,7 @@ const Dashboard = () => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
 
         // Check for only refresh_token content response
@@ -49,9 +54,34 @@ const Dashboard = () => {
           path: '/',
           SameSite: 'Lax',
           secure: window.location.protocol === 'https:',
-        });            
+        });
+
+        // Fetch dashboard stats
+        const statsResult = await safeFetch(
+          fetchApi('api/dashboard/stats', { method: 'GET' }, data.access_token),
+          placeholderStats
+        );
+        
+        if (statsResult.data) {
+          setStats(statsResult.data);
+        }
+
+        // Fetch recent activities 
+        const activitiesResult = await safeFetch(
+          fetchApi('api/dashboard/activities', { method: 'GET' }, data.access_token),
+          placeholderActivities
+        );
+        
+        if (activitiesResult.data) {
+          setActivities(activitiesResult.data);
+        }
+
+        setHasError(false);
       } catch (error) {
         console.error('Error fetching data:', error);
+        setHasError(true);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -60,6 +90,8 @@ const Dashboard = () => {
     const accessToken = localStorage.getItem('access_token');
     if (!refreshToken || !accessToken) {
       fetchData();
+    } else {
+      setLoading(false);
     }
   }, []);
 
@@ -72,6 +104,13 @@ const Dashboard = () => {
         
         <TransitionWrapper className="flex-1 overflow-y-auto p-6">
           <div className="container pb-8">
+            {hasError && (
+              <ErrorBanner 
+                message="There was an issue connecting to the API. Some data may not be current."
+                onDismiss={() => setHasError(false)}
+              />
+            )}
+            
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
               <p className="text-muted-foreground mt-2">
@@ -94,7 +133,10 @@ const Dashboard = () => {
                         <h3 className="text-2xl font-bold mt-2">{stat.value}</h3>
                       </div>
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <stat.icon className="h-5 w-5 text-primary" />
+                        {stat.icon === 'Server' && <Server className="h-5 w-5 text-primary" />}
+                        {stat.icon === 'Key' && <Key className="h-5 w-5 text-primary" />}
+                        {stat.icon === 'Users' && <Users className="h-5 w-5 text-primary" />}
+                        {stat.icon === 'Clock' && <Clock className="h-5 w-5 text-primary" />}
                       </div>
                     </div>
                     <div className="mt-4 inline-flex items-center text-xs font-medium text-muted-foreground">
@@ -151,15 +193,13 @@ const Dashboard = () => {
                   <h3 className="font-medium mb-6">Recent Activities</h3>
                   
                   <div className="space-y-4">
-                    {[
-                      { title: 'New agent connected', time: '2 mins ago', icon: Server },
-                      { title: 'API key generated', time: '1 hour ago', icon: Key },
-                      { title: 'System update completed', time: '3 hours ago', icon: Activity },
-                      { title: 'New user registered', time: '1 day ago', icon: Users },
-                    ].map((activity, i) => (
+                    {activities.map((activity, i) => (
                       <div key={i} className="flex items-start space-x-3">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <activity.icon className="h-4 w-4 text-primary" />
+                          {activity.icon === 'Server' && <Server className="h-4 w-4 text-primary" />}
+                          {activity.icon === 'Key' && <Key className="h-4 w-4 text-primary" />}
+                          {activity.icon === 'Activity' && <Activity className="h-4 w-4 text-primary" />}
+                          {activity.icon === 'Users' && <Users className="h-4 w-4 text-primary" />}
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">{activity.title}</p>

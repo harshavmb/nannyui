@@ -32,7 +32,15 @@ jobs:
         run: npm run typecheck || echo "Type checking failed but continuing workflow"
         
       - name: Run tests
-        run: npm run test || echo "Tests failed but continuing workflow"
+        run: npm run test -- --coverage
+        
+      - name: Upload test coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: coverage/
+          retention-days: 7
 
   build:
     name: Build

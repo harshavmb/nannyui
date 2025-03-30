@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Github, Calendar, Edit } from 'lucide-react';
@@ -5,47 +6,62 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import ErrorBanner from '@/components/ErrorBanner';
 import withAuth from '@/utils/withAuth';
 import { fetchApi } from '@/utils/config';
+import { safeFetch } from '@/utils/errorHandling';
+import { placeholderProfile, placeholderUserAuthToken } from '@/mocks/placeholderData';
 
 const Account = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(placeholderProfile);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     // Fetch data from the API
     const fetchAccount = async () => {
-      // Read the userinfo cookie      
-      const accessToken = localStorage.getItem('access_token'); // Fetch access_token from localStorage
+      setLoading(true);
+      const accessToken = localStorage.getItem('access_token');
+      
       if (accessToken) {
         try {
           // Fetch user ID from the API
-          const userIDResponse = await fetchApi('api/user-auth-token', {
-            method: 'GET',
-          }, accessToken);
+          const userIdResult = await safeFetch(
+            fetchApi('api/user-auth-token', { method: 'GET' }, accessToken),
+            placeholderUserAuthToken
+          );
 
-          if (!userIDResponse.ok) {
-            throw new Error(`Failed to fetch user ID: ${userIDResponse.status}`);
+          if (userIdResult.error) {
+            setHasError(true);
+            setLoading(false);
+            return;
           }
 
-          const userID = await userIDResponse.json();
+          const userID = userIdResult.data;
 
           // Fetch user profile using the user ID
-          const profileResponse = await fetchApi(`api/user/${userID}`, {
-            method: 'GET',
-          }, accessToken);
+          const profileResult = await safeFetch(
+            fetchApi(`api/user/${userID}`, { method: 'GET' }, accessToken),
+            placeholderProfile
+          );
 
-          if (!profileResponse.ok) {
-            throw new Error(`Failed to fetch user profile: ${profileResponse.status}`);
+          if (profileResult.data) {
+            setProfile(profileResult.data);
+            setHasError(false);
+          } else {
+            setHasError(true);
           }
-
-          const profileData = await profileResponse.json();
-          setProfile(profileData); // Set the profile state       
         } catch (error) {
           console.error("Error fetching userinfo from API:", error);
+          setHasError(true);
+        } finally {
+          setLoading(false);
         }
       } else {
         console.error('Access token not found in localStorage');
+        setLoading(false);
+        setHasError(true);
       }
     };
     
@@ -68,6 +84,13 @@ const Account = () => {
         
         <TransitionWrapper className="flex-1 overflow-y-auto p-6">
           <div className="container pb-8">
+            {hasError && (
+              <ErrorBanner 
+                message="There was an issue loading your profile information. Some data may not be current."
+                onDismiss={() => setHasError(false)}
+              />
+            )}
+            
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Account</h1>
               <p className="text-muted-foreground mt-2">
@@ -88,7 +111,7 @@ const Account = () => {
                   <div className="mt-6 py-4 border-t border-b border-border/40">
                     <div className="flex items-center justify-center space-x-2 text-sm">
                       <Github className="h-4 w-4" />
-                      <span>{profile?.html_url}</span>
+                      <span>{profile?.html_url || "github.com/user"}</span>
                     </div>
                   </div>
                   
@@ -105,7 +128,7 @@ const Account = () => {
                   <div className="space-y-4">
                     <div className="flex items-center">
                       <Mail className="h-4 w-4 text-muted-foreground mr-2" />
-                      <span className="text-sm">{profile?.email}</span>
+                      <span className="text-sm">{profile?.email || "user@example.com"}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
