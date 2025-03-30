@@ -1,10 +1,6 @@
 
 import Cookies from 'js-cookie';
-
-// Get the API base URL from environment variables
-const getApiUrl = () => {
-  return import.meta.env.VITE_API_URL || 'http://localhost:8080';
-};
+import { getBackendURL, createApiHeaders, fetchApi } from './config';
 
 // Get the stored access token
 export const getAccessToken = (): string | null => {
@@ -25,14 +21,9 @@ export const validateAccessToken = async (): Promise<boolean> => {
   }
   
   try {
-    const response = await fetch(`${getApiUrl()}/api/user-auth-token`, {
+    const response = await fetchApi('api/user-auth-token', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      credentials: 'include',
-    });
+    }, accessToken);
     
     return response.ok;
   } catch (error) {
@@ -44,12 +35,8 @@ export const validateAccessToken = async (): Promise<boolean> => {
 // Refresh the tokens using the refresh token cookie
 export const refreshTokens = async (): Promise<boolean> => {
   try {
-    const response = await fetch(`${getApiUrl()}/api/refresh-token`, {
+    const response = await fetchApi('api/refresh-token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies
     });
     
     if (!response.ok) {
@@ -66,4 +53,17 @@ export const refreshTokens = async (): Promise<boolean> => {
     console.error('Error refreshing tokens:', error);
     return false;
   }
+};
+
+// Handle redirection to dashboard after authentication
+export const redirectToDashboard = (): void => {
+  window.location.href = '/dashboard';
+};
+
+// Log out the user by clearing tokens
+export const logoutUser = (): void => {
+  localStorage.removeItem('access_token');
+  // Note: refresh_token is an HttpOnly cookie that can't be removed from client-side
+  // The backend should handle invalidating it
+  window.location.href = '/';
 };

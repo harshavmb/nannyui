@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
@@ -7,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
@@ -19,15 +19,10 @@ const Tokens = () => {
 
       if (accessToken) {
         try {
-          const response = await fetch('http://localhost:8080/api/auth-tokens', {
+          const response = await fetchApi('api/auth-tokens', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',
-              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
-            },
-            credentials: 'include',
-          });
+          }, accessToken);
+          
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -44,8 +39,7 @@ const Tokens = () => {
     };
 
     fetchAuthTokens();
-  }
-  , []);
+  }, []);
   
   const tokens = [
     { 

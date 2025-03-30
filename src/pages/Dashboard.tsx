@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, Key, Users, Clock, ArrowUpRight, Activity } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -9,6 +9,8 @@ import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import Cookies from 'js-cookie';
 import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
+import { setAccessToken } from '@/utils/authUtils';
 
 const Dashboard = () => {
   const stats = [
@@ -22,13 +24,8 @@ const Dashboard = () => {
     // Fetch data from the API
     const fetchData = async () => {
       try {        
-        const response = await fetch(`http://localhost:8080/github/profile`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',
-            },
-            credentials: 'include',
+        const response = await fetchApi('github/profile', {
+          method: 'GET',
         });        
 
         if (!response.ok) {
@@ -43,7 +40,7 @@ const Dashboard = () => {
         }
         
         // Set access_token in localStorage
-        localStorage.setItem('access_token', data.access_token);
+        setAccessToken(data.access_token);
 
         // Set userinfo cookie
         const encodedUserInfo = encodeURIComponent(JSON.stringify(data.user));
@@ -51,7 +48,7 @@ const Dashboard = () => {
           expires: 7,
           path: '/',
           SameSite: 'Lax',
-          secure: false,
+          secure: window.location.protocol === 'https:',
         });            
       } catch (error) {
         console.error('Error fetching data:', error);

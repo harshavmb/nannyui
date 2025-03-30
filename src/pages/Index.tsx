@@ -5,17 +5,13 @@ import { Github } from 'lucide-react';
 import LoginHeader from '@/components/LoginHeader';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import Footer from '@/components/Footer';
-import { useRouter } from 'next/router';
+import { getBackendURL } from '@/utils/config';
 
 const Index = () => {
-  //const router = useRouter();
-  
   const handleGitHubLogin = async () => {
-    // GitHub login logic would go here
-    const apiUrl = "http://localhost:8080"
     try {
       // Redirect the user to the backend's /github/login endpoint
-      window.location.href = `${apiUrl}/github/login`;
+      window.location.href = `${getBackendURL()}/github/login`;
     } catch (error) {
       console.error("Error initiating GitHub login:", error);
     }

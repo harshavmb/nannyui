@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Github, Calendar, Edit } from 'lucide-react';
@@ -7,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import withAuth from '@/utils/withAuth';
+import { fetchApi } from '@/utils/config';
 
 const Account = () => {
   const [profile, setProfile] = useState(null);
@@ -20,15 +20,9 @@ const Account = () => {
       if (accessToken) {
         try {
           // Fetch user ID from the API
-          const userIDResponse = await fetch('http://localhost:8080/api/user-auth-token', {
+          const userIDResponse = await fetchApi('api/user-auth-token', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',
-              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
-            },
-            credentials: 'include',
-          });
+          }, accessToken);
 
           if (!userIDResponse.ok) {
             throw new Error(`Failed to fetch user ID: ${userIDResponse.status}`);
@@ -36,16 +30,10 @@ const Account = () => {
 
           const userID = await userIDResponse.json();
 
-           // Fetch user profile using the user ID
-           const profileResponse = await fetch(`http://localhost:8080/api/user/${userID}`, {
+          // Fetch user profile using the user ID
+          const profileResponse = await fetchApi(`api/user/${userID}`, {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',
-              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
-            },
-            credentials: 'include',
-          });
+          }, accessToken);
 
           if (!profileResponse.ok) {
             throw new Error(`Failed to fetch user profile: ${profileResponse.status}`);

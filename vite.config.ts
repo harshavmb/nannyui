@@ -5,7 +5,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // Environment variables with defaults for different environments
-const getEnvironmentVariables = (mode) => {
+const getEnvironmentVariables = (mode: string) => {
   // Common variables across all environments
   const common = {
     'process.env': {}

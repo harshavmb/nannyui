@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import withAuth from '@/utils/withAuth';
@@ -17,6 +16,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
+import { fetchApi } from '@/utils/config';
 
 const Agents = () => {
   const [nannyAgents, setAgents] = useState([]);
@@ -28,15 +28,9 @@ const Agents = () => {
 
       if (accessToken) {
         try {
-          const response = await fetch('http://localhost:8080/api/agents', {
+          const response = await fetchApi('api/agents', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:8081',
-              'Authorization': `Bearer ${accessToken}`, // Add Authorization header
-            },
-            credentials: 'include',
-          });
+          }, accessToken);
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,6 +50,7 @@ const Agents = () => {
 
     fetchAgents();
   }, []);
+
   const agents = [
     { 
       name: 'prod-server-01', 
