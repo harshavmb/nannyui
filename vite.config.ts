@@ -25,12 +25,12 @@ const getEnvironmentVariables = (mode: string) => {
 
   // Testing-specific variables
   const test = {
-    'VITE_API_URL': JSON.stringify('http://localhost:8080'),
+    'VITE_API_URL': JSON.stringify('https://nannyai.alwaysdata.com'),
     'VITE_ENV': JSON.stringify('test')
   };
 
   // Select environment variables based on mode
-  const envVars = mode === 'production' 
+  const envVars = mode === 'production'
     ? { ...common, ...production }
     : mode === 'test' 
       ? { ...common, ...test }
