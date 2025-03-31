@@ -25,7 +25,7 @@ const getEnvironmentVariables = (mode: string) => {
 
   // Testing-specific variables
   const test = {
-    'VITE_API_URL': JSON.stringify('https://nannyai.alwaysdata.com'),
+    'VITE_API_URL': JSON.stringify('https://nannyai.alwaysdata.net'),
     'VITE_ENV': JSON.stringify('test')
   };
 
