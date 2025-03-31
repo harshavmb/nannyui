@@ -81,8 +81,18 @@ export const fetchApi = async (
       ...headers,
       ...options.headers,
     },
-    credentials: 'include', // Include cookies in requests
+    credentials: 'include', // Always include cookies in requests
+    mode: 'cors', // Explicitly set CORS mode
   };
   
-  return fetch(url, fetchOptions);
+  console.log(`Making API call to: ${url}`);
+  
+  try {
+    const response = await fetch(url, fetchOptions);
+    console.log(`API response status for ${endpoint}: ${response.status}`);
+    return response;
+  } catch (error) {
+    console.error(`API fetch error for ${endpoint}:`, error);
+    throw error;
+  }
 };

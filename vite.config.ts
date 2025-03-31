@@ -26,7 +26,9 @@ const getEnvironmentVariables = (mode: string) => {
   // Testing-specific variables
   const test = {
     'VITE_API_URL': JSON.stringify('https://nannyai.alwaysdata.net'),
-    'VITE_ENV': JSON.stringify('test')
+    'VITE_ENV': JSON.stringify('test'),
+    'VITE_ALLOW_CREDENTIALS': JSON.stringify('true'), // Explicitly allow credentials for test env
+    'VITE_ALLOW_ORIGIN': JSON.stringify('*') // Allow any origin in test for debugging
   };
 
   // Select environment variables based on mode
@@ -43,6 +45,11 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    cors: {
+      origin: '*',
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    }
   },
   define: getEnvironmentVariables(mode),
   plugins: [
