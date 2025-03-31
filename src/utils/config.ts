@@ -36,8 +36,8 @@ export const getFrontendURL = (): string => {
     return window.location.protocol + '//' + hostname + ':' + (window.location.port || '8081');
   }
   
-  // Handle production domains
-  if (env === 'production') {
+  // Handle production and test domains
+  if (env === 'production' || env === 'test') {
     return window.location.origin;
   }
   
