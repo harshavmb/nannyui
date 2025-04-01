@@ -19,7 +19,7 @@ export const getBackendURL = (): string => {
     case 'production':
       return 'https://api.nannyai.dev';
     case 'test':
-      return 'http://localhost:8080';
+      return 'https://nannyai.alwaysdata.net';
     case 'development':
     default:
       return 'http://localhost:8080';
@@ -36,8 +36,8 @@ export const getFrontendURL = (): string => {
     return window.location.protocol + '//' + hostname + ':' + (window.location.port || '8081');
   }
   
-  // Handle production domains
-  if (env === 'production') {
+  // Handle production and test domains
+  if (env === 'production' || env === 'test') {
     return window.location.origin;
   }
   
@@ -81,8 +81,18 @@ export const fetchApi = async (
       ...headers,
       ...options.headers,
     },
-    credentials: 'include', // Include cookies in requests
+    credentials: 'include', // Always include cookies in requests
+    mode: 'cors', // Explicitly set CORS mode
   };
   
-  return fetch(url, fetchOptions);
+  console.log(`Making API call to: ${url}`);
+  
+  try {
+    const response = await fetch(url, fetchOptions);
+    console.log(`API response status for ${endpoint}: ${response.status}`);
+    return response;
+  } catch (error) {
+    console.error(`API fetch error for ${endpoint}:`, error);
+    throw error;
+  }
 };

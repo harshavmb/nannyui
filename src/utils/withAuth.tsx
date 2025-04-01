@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { validateAccessToken, refreshTokens } from './authUtils';
 import { useToast } from '@/hooks/use-toast';
+import { getBackendURL } from './config';
 
 /**
  * Higher-order component that provides authentication protection for routes
@@ -15,35 +17,87 @@ const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
 
     useEffect(() => {
       const checkAuth = async () => {
-        // First, try to validate the existing access token
-        const isValid = await validateAccessToken();
-        
-        if (isValid) {
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // If access token is invalid, try to refresh tokens
-        const refreshed = await refreshTokens();
-        
-        if (refreshed) {
-          setIsAuthenticated(true);
-        } else {
-          // If refresh failed, user is not authenticated
-          setIsAuthenticated(false);
+        try {
+          console.log('Checking authentication status...');
           
-          // Only show toast if not already on the landing page
-          if (location.pathname !== '/') {
-            toast({
-              title: "Authentication required",
-              description: "Please sign in to access this page",
-              variant: "destructive",
-            });
+          // First, check if we just got redirected from GitHub auth
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+          
+          if (code) {
+            console.log('GitHub auth code detected, removing from URL');
+            // Remove the code from the URL to prevent issues on refresh
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
           }
+          
+          // First, try to validate the existing access token
+          console.log('Validating access token...');
+          const isValid = await validateAccessToken();
+          
+          if (isValid) {
+            console.log('Access token is valid');
+            setIsAuthenticated(true);
+            setIsLoading(false);
+            return;
+          }
+
+          // If access token is invalid, try to refresh tokens
+          console.log('Access token invalid, attempting to refresh tokens...');
+          const refreshed = await refreshTokens();
+          
+          if (refreshed) {
+            console.log('Token refresh successful');
+            setIsAuthenticated(true);
+          } else {
+            console.log('Token refresh failed, checking GitHub profile as fallback...');
+            
+            // As a last resort, try to fetch GitHub profile directly
+            try {
+              const response = await fetch(`${getBackendURL()}/github/profile`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (response.ok) {
+                console.log('GitHub profile fetch successful');
+                setIsAuthenticated(true);
+              } else {
+                console.log('GitHub profile fetch failed, user is not authenticated');
+                setIsAuthenticated(false);
+                
+                // Only show toast if not already on the landing page
+                if (location.pathname !== '/') {
+                  toast({
+                    title: "Authentication required",
+                    description: "Please sign in to access this page",
+                    variant: "destructive",
+                  });
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching GitHub profile:', error);
+              setIsAuthenticated(false);
+              
+              // Only show toast if not already on the landing page
+              if (location.pathname !== '/') {
+                toast({
+                  title: "Authentication error",
+                  description: "Unable to verify your session. Please sign in again.",
+                  variant: "destructive",
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Authentication check error:', error);
+          setIsAuthenticated(false);
+        } finally {
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       };
 
       checkAuth();
