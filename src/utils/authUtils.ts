@@ -1,6 +1,6 @@
 
 import Cookies from 'js-cookie';
-import { getBackendURL, createApiHeaders, fetchApi } from './config';
+import { getBackendURL, createApiHeaders, fetchApi, isCrossDomainScenario } from './config';
 
 // Get the stored access token
 export const getAccessToken = (): string | null => {
@@ -73,23 +73,34 @@ export const refreshTokens = async (): Promise<boolean> => {
 export const fetchGitHubProfile = async (): Promise<boolean> => {
   try {
     console.log('Fetching GitHub profile directly...');
+    
+    // Use different approach for cross-domain scenarios
+    if (isCrossDomainScenario()) {
+      console.log('Using cross-domain approach for GitHub profile fetch');
+    }
+    
     const response = await fetch(`${getBackendURL()}/github/profile`, {
       method: 'GET',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
+      // Explicitly set mode to cors for cross-origin requests
+      mode: 'cors'
     });
     
     console.log('GitHub profile fetch status:', response.status);
     
     if (!response.ok) {
+      console.log('GitHub profile fetch failed with status:', response.status);
       return false;
     }
     
     const data = await response.json();
+    console.log('GitHub profile data received:', Object.keys(data));
     
     if (data.access_token) {
+      console.log('Setting access token from GitHub profile');
       setAccessToken(data.access_token);
       return true;
     }

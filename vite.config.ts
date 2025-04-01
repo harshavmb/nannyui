@@ -23,12 +23,13 @@ const getEnvironmentVariables = (mode: string) => {
     'VITE_ENV': JSON.stringify('production')
   };
 
-  // Testing-specific variables
+  // Testing-specific variables - updated for better cross-domain support
   const test = {
     'VITE_API_URL': JSON.stringify('https://nannyai.alwaysdata.net'),
     'VITE_ENV': JSON.stringify('test'),
     'VITE_ALLOW_CREDENTIALS': JSON.stringify('true'), // Explicitly allow credentials for test env
-    'VITE_ALLOW_ORIGIN': JSON.stringify('*') // Allow any origin in test for debugging
+    'VITE_ALLOW_ORIGIN': JSON.stringify('https://nannyai-test.vercel.app'), // Specific origin rather than wildcard
+    'VITE_CROSS_DOMAIN': JSON.stringify('true') // Flag to indicate cross-domain scenario
   };
 
   // Select environment variables based on mode
@@ -46,7 +47,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     cors: {
-      origin: '*',
+      origin: mode === 'test' ? 'https://nannyai-test.vercel.app' : '*',
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     }

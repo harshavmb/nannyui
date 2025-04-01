@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { validateAccessToken, refreshTokens } from './authUtils';
+import { validateAccessToken, refreshTokens, fetchGitHubProfile } from './authUtils';
 import { useToast } from '@/hooks/use-toast';
-import { getBackendURL } from './config';
+import { getBackendURL, isCrossDomainScenario } from './config';
 
 /**
  * Higher-order component that provides authentication protection for routes
@@ -29,6 +29,35 @@ const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
             // Remove the code from the URL to prevent issues on refresh
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
+            
+            // Special handling for cross-domain scenarios with GitHub code
+            if (isCrossDomainScenario()) {
+              console.log('Cross-domain scenario detected with GitHub code');
+              // In cross-domain scenarios with code, we should directly try to fetch GitHub profile
+              try {
+                console.log('Attempting to exchange code for tokens directly');
+                const exchangeResponse = await fetch(`${getBackendURL()}/github/callback?code=${code}`, {
+                  method: 'GET',
+                  credentials: 'include',
+                  mode: 'cors'
+                });
+                
+                if (exchangeResponse.ok) {
+                  console.log('Code exchange successful, now fetching profile');
+                  const profileFetched = await fetchGitHubProfile();
+                  if (profileFetched) {
+                    console.log('Profile fetch successful after code exchange');
+                    setIsAuthenticated(true);
+                    setIsLoading(false);
+                    return;
+                  }
+                } else {
+                  console.log('Code exchange failed:', exchangeResponse.status);
+                }
+              } catch (error) {
+                console.error('Error during code exchange:', error);
+              }
+            }
           }
           
           // First, try to validate the existing access token
@@ -54,15 +83,9 @@ const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
             
             // As a last resort, try to fetch GitHub profile directly
             try {
-              const response = await fetch(`${getBackendURL()}/github/profile`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              });
+              const profileFetched = await fetchGitHubProfile();
               
-              if (response.ok) {
+              if (profileFetched) {
                 console.log('GitHub profile fetch successful');
                 setIsAuthenticated(true);
               } else {
