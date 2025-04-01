@@ -19,7 +19,7 @@ export const getBackendURL = (): string => {
     case 'production':
       return 'https://api.nannyai.dev';
     case 'test':
-      return 'https://nannyai.alwaysdata.net';
+      return 'https://api.nannyai.dev'; // Use the same URL as production
     case 'development':
     default:
       return 'http://localhost:8080';
