@@ -28,12 +28,8 @@ const Dashboard = () => {
         setLoading(true);
         
         // Add credentials explicitly to ensure cookies are sent
-        const response = await fetch(`${getBackendURL()}/github/profile`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
+        const response = await fetchApi('/github/profile', {
+          method: 'GET'
         });
         
         if (!response.ok) {
