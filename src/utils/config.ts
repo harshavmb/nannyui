@@ -50,12 +50,6 @@ export const getAccessControlAllowOrigin = (): string => {
   return getFrontendURL();
 };
 
-// Check if we're in a cross-domain scenario
-export const isCrossDomainScenario = (): boolean => {
-  const env = getEnvironment();
-  return env === 'test'; // In test environment, we're always cross-domain
-};
-
 // Create fetch headers with proper CORS settings
 export const createApiHeaders = (token?: string): HeadersInit => {
   const headers: HeadersInit = {
@@ -89,16 +83,9 @@ export const fetchApi = async (
     credentials: 'include', // Always include cookies in requests
   };
   
-  // Add explicit CORS settings for test environment
-  if (isCrossDomainScenario()) {
-    console.log('Using cross-domain CORS settings for test environment');
-  }
-  
-  console.log(`Making API call to: ${url}`);
   
   try {
     const response = await fetch(url, fetchOptions);
-    console.log(`API response status for ${endpoint}: ${response.status}`);
     return response;
   } catch (error) {
     console.error(`API fetch error for ${endpoint}:`, error);

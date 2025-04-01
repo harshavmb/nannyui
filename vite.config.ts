@@ -23,9 +23,9 @@ const getEnvironmentVariables = (mode: string) => {
     'VITE_ENV': JSON.stringify('production')
   };
 
-  // Testing-specific variables - updated for better cross-domain support
+  // Testing-specific variables
   const test = {
-    'VITE_API_URL': JSON.stringify('https://api-test.nannyai.dev'),
+    'VITE_API_URL': JSON.stringify('https://api.nannyai.dev'), // use the same URL as production
     'VITE_ENV': JSON.stringify('test')
   };
 
