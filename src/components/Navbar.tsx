@@ -4,24 +4,19 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, User, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Cookies from 'js-cookie';
+import { getUsername } from '@/utils/authUtils';
 
 const Navbar: React.FC = () => {
   const [userName, setUserName] = useState('Nanny User');
 
   useEffect(() => {
-    const userInfoCookie = Cookies.get('userinfo');
-
-    if (userInfoCookie) {
-      try {
-        const decodedUserInfo = decodeURIComponent(userInfoCookie);
-        const userInfo = JSON.parse(decodedUserInfo);
-        setUserName(userInfo.name || 'Nanny User'); // Use a default value if name is not available
-      } catch (error) {
-        console.error("Error parsing userinfo cookie:", error);
-      }
+    // Get username from localStorage
+    const storedName = getUsername();
+    if (storedName) {
+      setUserName(storedName);
     }
   }, []);
+
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}

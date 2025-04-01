@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { logoutUser } from '@/utils/authUtils';
 
 interface SidebarLinkProps {
   to: string;
@@ -61,6 +61,10 @@ const Sidebar: React.FC = () => {
     { to: '/documentation', icon: BookOpen, label: 'Documentation' },
     { to: '/contact', icon: Mail, label: 'Contact' },
   ];
+
+  const handleLogout = () => {
+    logoutUser();
+  };
 
   return (
     <motion.div
@@ -118,6 +122,7 @@ const Sidebar: React.FC = () => {
         </a>
         
         <button 
+          onClick={handleLogout}
           className={cn(
             "flex items-center py-3 px-4 rounded-lg w-full text-sidebar-foreground/80 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground transition-all duration-200"
           )}

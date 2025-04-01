@@ -1,17 +1,28 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Github } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import LoginHeader from '@/components/LoginHeader';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import Footer from '@/components/Footer';
 import ErrorBanner from '@/components/ErrorBanner';
 import { getBackendURL } from '@/utils/config';
 import { useToast } from '@/hooks/use-toast';
+import { isAuthenticated } from '@/utils/authUtils';
 
 const Login = () => {
   const [isError, setIsError] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    if (isAuthenticated()) {
+      // Redirect to dashboard if already logged in
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleGitHubLogin = async () => {
     try {

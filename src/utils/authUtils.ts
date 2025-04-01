@@ -12,6 +12,16 @@ export const setAccessToken = (token: string): void => {
   localStorage.setItem('access_token', token);
 };
 
+// Get the stored username
+export const getUsername = (): string => {
+  return localStorage.getItem('username') || 'Nanny User';
+};
+
+// Set the username in localStorage
+export const setUsername = (name: string): void => {
+  localStorage.setItem('username', name);
+};
+
 // Validate the access token with the backend
 export const validateAccessToken = async (): Promise<boolean> => {
   const accessToken = getAccessToken();
@@ -47,9 +57,12 @@ export const refreshTokens = async (): Promise<boolean> => {
     
     const data = await response.json();
     
-    // Store the new access token if received
+    // Store the new access token and username if received
     if (data.access_token) {
       setAccessToken(data.access_token);
+      if (data.user && data.user.name) {
+        setUsername(data.user.name);
+      }
       return true;
     } else {
       console.warn('No access token received in refresh response');
@@ -64,7 +77,6 @@ export const refreshTokens = async (): Promise<boolean> => {
 // Direct call to GitHub profile to get tokens in cross-domain scenarios
 export const fetchGitHubProfile = async (): Promise<boolean> => {
   try {
-    
     const response = await fetch(`${getBackendURL()}/github/profile`, {
       method: 'GET',
       credentials: 'include',
@@ -82,6 +94,9 @@ export const fetchGitHubProfile = async (): Promise<boolean> => {
     
     if (data.access_token) {
       setAccessToken(data.access_token);
+      if (data.user && data.user.name) {
+        setUsername(data.user.name);
+      }
       return true;
     }
     
@@ -92,6 +107,11 @@ export const fetchGitHubProfile = async (): Promise<boolean> => {
   }
 };
 
+// Check if the user is authenticated
+export const isAuthenticated = (): boolean => {
+  return !!getAccessToken();
+};
+
 // Handle redirection to dashboard after authentication
 export const redirectToDashboard = (): void => {
   window.location.href = '/dashboard';
@@ -100,6 +120,7 @@ export const redirectToDashboard = (): void => {
 // Log out the user by clearing tokens
 export const logoutUser = (): void => {
   localStorage.removeItem('access_token');
+  localStorage.removeItem('username');
   // Note: refresh_token is an HttpOnly cookie that can't be removed from client-side
   // The backend should handle invalidating it
   

@@ -8,10 +8,9 @@ import Sidebar from '@/components/Sidebar';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import ErrorBanner from '@/components/ErrorBanner';
-import Cookies from 'js-cookie';
 import withAuth from '@/utils/withAuth';
 import { fetchApi, getBackendURL } from '@/utils/config';
-import { setAccessToken } from '@/utils/authUtils';
+import { setAccessToken, setUsername } from '@/utils/authUtils';
 import { safeFetch } from '@/utils/errorHandling';
 import { placeholderStats, placeholderActivities } from '@/mocks/placeholderData';
 
@@ -54,15 +53,9 @@ const Dashboard = () => {
         if (data.access_token) {
           setAccessToken(data.access_token);
 
-          // Set userinfo cookie
-          if (data.user) {
-            const encodedUserInfo = encodeURIComponent(JSON.stringify(data.user));
-            Cookies.set('userinfo', encodedUserInfo, {
-              expires: 7,
-              path: '/',
-              sameSite: 'Lax',
-              secure: window.location.protocol === 'https:',
-            });
+          // Set username in localStorage
+          if (data.user && data.user.name) {
+            setUsername(data.user.name);
           }
 
           // Fetch dashboard stats
@@ -97,12 +90,6 @@ const Dashboard = () => {
       }
     };
 
-    // Check if refresh_token and access_token are already present
-    const refreshToken = Cookies.get('refresh_token');
-    const accessToken = localStorage.getItem('access_token');
-        
-    // Always call fetchData to ensure we have the latest tokens
-    // This is crucial for cross-domain scenarios
     fetchData();
   }, []);
 
