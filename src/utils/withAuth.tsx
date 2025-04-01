@@ -18,39 +18,32 @@ const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
     useEffect(() => {
       const checkAuth = async () => {
         try {
-          console.log('Checking authentication status...');
           
           // First, check if we just got redirected from GitHub auth
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           
           if (code) {
-            console.log('GitHub auth code detected, removing from URL');
             // Remove the code from the URL to prevent issues on refresh
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
           }
           
           // First, try to validate the existing access token
-          console.log('Validating access token...');
           const isValid = await validateAccessToken();
           
           if (isValid) {
-            console.log('Access token is valid');
             setIsAuthenticated(true);
             setIsLoading(false);
             return;
           }
 
           // If access token is invalid, try to refresh tokens
-          console.log('Access token invalid, attempting to refresh tokens...');
           const refreshed = await refreshTokens();
           
           if (refreshed) {
-            console.log('Token refresh successful');
             setIsAuthenticated(true);
           } else {
-            console.log('Token refresh failed, checking GitHub profile as fallback...');
             
             // As a last resort, try to fetch GitHub profile directly
             try {
@@ -63,10 +56,8 @@ const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
               });
               
               if (response.ok) {
-                console.log('GitHub profile fetch successful');
                 setIsAuthenticated(true);
               } else {
-                console.log('GitHub profile fetch failed, user is not authenticated');
                 setIsAuthenticated(false);
                 
                 // Only show toast if not already on the landing page

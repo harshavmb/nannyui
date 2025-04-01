@@ -17,17 +17,14 @@ export const validateAccessToken = async (): Promise<boolean> => {
   const accessToken = getAccessToken();
   
   if (!accessToken) {
-    console.log('No access token found in localStorage');
     return false;
   }
   
   try {
-    console.log('Validating access token with backend...');
     const response = await fetchApi('api/user-auth-token', {
       method: 'GET',
     }, accessToken);
     
-    console.log('Access token validation response status:', response.status);
     return response.ok;
   } catch (error) {
     console.error('Error validating access token:', error);
@@ -38,25 +35,20 @@ export const validateAccessToken = async (): Promise<boolean> => {
 // Refresh the tokens using the refresh token cookie
 export const refreshTokens = async (): Promise<boolean> => {
   try {
-    console.log('Attempting to refresh tokens...');
     const response = await fetchApi('api/refresh-token', {
       method: 'POST',
       credentials: 'include', // Ensure cookies are sent with the request
     });
     
-    console.log('Refresh token response status:', response.status);
     
     if (!response.ok) {
-      console.log('Token refresh failed with status:', response.status);
       return false;
     }
     
     const data = await response.json();
-    console.log('Refresh token response data keys:', Object.keys(data));
     
     // Store the new access token if received
     if (data.access_token) {
-      console.log('Setting new access token in localStorage');
       setAccessToken(data.access_token);
       return true;
     } else {
@@ -72,7 +64,7 @@ export const refreshTokens = async (): Promise<boolean> => {
 // Direct call to GitHub profile to get tokens in cross-domain scenarios
 export const fetchGitHubProfile = async (): Promise<boolean> => {
   try {
-    console.log('Fetching GitHub profile directly...');
+    
     const response = await fetch(`${getBackendURL()}/github/profile`, {
       method: 'GET',
       credentials: 'include',
@@ -81,7 +73,6 @@ export const fetchGitHubProfile = async (): Promise<boolean> => {
       },
     });
     
-    console.log('GitHub profile fetch status:', response.status);
     
     if (!response.ok) {
       return false;

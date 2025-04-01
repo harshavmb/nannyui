@@ -28,7 +28,6 @@ const Dashboard = () => {
       try {
         setLoading(true);
         
-        console.log('Attempting to fetch GitHub profile data');
         // Add credentials explicitly to ensure cookies are sent
         const response = await fetch(`${getBackendURL()}/github/profile`, {
           method: 'GET',
@@ -37,8 +36,6 @@ const Dashboard = () => {
             'Content-Type': 'application/json',
           }
         });
-
-        console.log('GitHub profile response status:', response.status);
         
         if (!response.ok) {
           console.error(`GitHub profile HTTP error! status: ${response.status}`);
@@ -46,23 +43,19 @@ const Dashboard = () => {
         }
         
         const data = await response.json();
-        console.log('GitHub profile data received:', Object.keys(data));
 
         // Check for only refresh_token content response
         if (data.refresh_token && !data.access_token && !data.user) {
-          console.log('Only refresh token received, not updating other data');
           // We do nothing as refresh_token is still valid
           return;
         }
         
         // Set access_token in localStorage
         if (data.access_token) {
-          console.log('Setting access token in localStorage');
           setAccessToken(data.access_token);
 
           // Set userinfo cookie
           if (data.user) {
-            console.log('Setting user info in cookie');
             const encodedUserInfo = encodeURIComponent(JSON.stringify(data.user));
             Cookies.set('userinfo', encodedUserInfo, {
               expires: 7,
@@ -73,7 +66,6 @@ const Dashboard = () => {
           }
 
           // Fetch dashboard stats
-          console.log('Fetching dashboard stats');
           const statsResult = await safeFetch(
             fetchApi('api/dashboard/stats', { method: 'GET' }, data.access_token),
             placeholderStats
@@ -84,7 +76,6 @@ const Dashboard = () => {
           }
 
           // Fetch recent activities 
-          console.log('Fetching dashboard activities');
           const activitiesResult = await safeFetch(
             fetchApi('api/dashboard/activities', { method: 'GET' }, data.access_token),
             placeholderActivities
@@ -99,7 +90,6 @@ const Dashboard = () => {
           setHasError(true);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
         setErrorMessage("Error connecting to authentication service. Using placeholder data.");
         setHasError(true);
       } finally {
@@ -110,10 +100,7 @@ const Dashboard = () => {
     // Check if refresh_token and access_token are already present
     const refreshToken = Cookies.get('refresh_token');
     const accessToken = localStorage.getItem('access_token');
-    
-    console.log('Refresh token exists:', !!refreshToken);
-    console.log('Access token exists:', !!accessToken);
-    
+        
     // Always call fetchData to ensure we have the latest tokens
     // This is crucial for cross-domain scenarios
     fetchData();

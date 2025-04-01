@@ -19,7 +19,7 @@ export const getBackendURL = (): string => {
     case 'production':
       return 'https://api.nannyai.dev';
     case 'test':
-      return 'https://nannyai.alwaysdata.net';
+      return 'https://api.nannyai.dev'; // Use the same URL as production
     case 'development':
     default:
       return 'http://localhost:8080';
@@ -54,7 +54,6 @@ export const getAccessControlAllowOrigin = (): string => {
 export const createApiHeaders = (token?: string): HeadersInit => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': getAccessControlAllowOrigin(),
   };
   
   if (token) {
@@ -82,14 +81,11 @@ export const fetchApi = async (
       ...options.headers,
     },
     credentials: 'include', // Always include cookies in requests
-    mode: 'cors', // Explicitly set CORS mode
   };
   
-  console.log(`Making API call to: ${url}`);
   
   try {
     const response = await fetch(url, fetchOptions);
-    console.log(`API response status for ${endpoint}: ${response.status}`);
     return response;
   } catch (error) {
     console.error(`API fetch error for ${endpoint}:`, error);
