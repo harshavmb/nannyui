@@ -16,7 +16,7 @@ const Login = () => {
   const handleGitHubLogin = async () => {
     try {
       // Check if the backend is reachable first
-      const testResponse = await fetch(`${getBackendURL()}/api/health`, {
+      const testResponse = await fetch(`${getBackendURL()}/status`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         mode: 'no-cors',
