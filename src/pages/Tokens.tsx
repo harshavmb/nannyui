@@ -151,7 +151,7 @@ const Tokens = () => {
                           <Key className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-medium">{token.name}</h3>
+                          <h3 className="font-medium">{token.id}</h3>
                           <p className="text-xs text-muted-foreground mt-1">
                             {token.type}
                           </p>
@@ -173,7 +173,7 @@ const Tokens = () => {
                         <div className="flex items-center mt-2 text-xs text-muted-foreground">
                           <div className="flex items-center mr-3">
                             <Calendar className="h-3 w-3 mr-1" />
-                            <span>{token.created}</span>
+                            <span>{token.created_at}</span>
                           </div>
                           <div className="flex items-center">
                             <Clock className="h-3 w-3 mr-1" />

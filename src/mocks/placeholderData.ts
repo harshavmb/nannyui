@@ -15,15 +15,15 @@ export const placeholderTokens = [
     name: 'Development API Key', 
     token: 'sk_dev_placeholder', 
     type: 'Development',
-    created: 'Jan 1, 2023',
+    created_at: 'Jan 1, 2023',
     lastUsed: '5 mins ago'
   },
   { 
     id: "placeholder-2",
     name: 'Production API Key', 
-    token: 'sk_prod_placeholder', 
+    token: 'sk_prod_placeholder',
     type: 'Production',
-    created: 'Jan 1, 2023',
+    created_at: 'Jan 1, 2023',
     lastUsed: '2 hours ago'
   }
 ];
