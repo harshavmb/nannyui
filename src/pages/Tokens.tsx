@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
@@ -14,6 +13,7 @@ import { placeholderTokens } from '@/mocks/placeholderData';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
@@ -23,40 +23,44 @@ const Tokens = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newToken, setNewToken] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
+  const [tokenToRevoke, setTokenToRevoke] = useState(null);
+  const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  // Function to fetch tokens from the API
+  const fetchAuthTokens = async () => {
+    setLoading(true);
+    const accessToken = localStorage.getItem('access_token');
+
+    if (accessToken) {
+      try {
+        const result = await safeFetch(
+          fetchApi('api/auth-tokens', { method: 'GET' }, accessToken),
+          placeholderTokens
+        );
+
+        if (result.data) {
+          setTokens(result.data);
+          setHasError(false);
+        } else {
+          setHasError(true);
+        }
+      } catch (error) {
+        console.error('Error fetching tokens:', error);
+        setHasError(true);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      console.error('Access token not found in localStorage');
+      setLoading(false);
+      setHasError(true);
+    }
+  };
 
   useEffect(() => {
     // Fetch data from the API
-    const fetchAuthTokens = async () => {
-      setLoading(true);
-      const accessToken = localStorage.getItem('access_token');
-
-      if (accessToken) {
-        try {
-          const result = await safeFetch(
-            fetchApi('api/auth-tokens', { method: 'GET' }, accessToken),
-            placeholderTokens
-          );
-
-          if (result.data) {
-            setTokens(result.data);
-            setHasError(false);
-          } else {
-            setHasError(true);
-          }
-        } catch (error) {
-          console.error('Error fetching tokens:', error);
-          setHasError(true);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        console.error('Access token not found in localStorage');
-        setLoading(false);
-        setHasError(true);
-      }
-    };
-
     fetchAuthTokens();
   }, []);
 
@@ -139,6 +143,58 @@ const Tokens = () => {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleRevokeToken = async () => {
+    if (!tokenToRevoke) return;
+    
+    setIsRevoking(true);
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (!accessToken) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to revoke tokens",
+        variant: "destructive",
+      });
+      setIsRevoking(false);
+      setIsRevokeDialogOpen(false);
+      return;
+    }
+    
+    try {
+      const response = await fetchApi(`api/auth-token/${tokenToRevoke.id}`, {
+        method: 'DELETE',
+      }, accessToken);
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      // Refresh the token list after successful revocation
+      await fetchAuthTokens();
+      
+      toast({
+        title: "Token Revoked",
+        description: "API token has been successfully revoked",
+      });
+    } catch (error) {
+      console.error('Error revoking token:', error);
+      toast({
+        title: "Failed to Revoke Token",
+        description: "There was an error revoking your API token",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRevoking(false);
+      setIsRevokeDialogOpen(false);
+      setTokenToRevoke(null);
+    }
+  };
+
+  const openRevokeDialog = (token) => {
+    setTokenToRevoke(token);
+    setIsRevokeDialogOpen(true);
   };
 
   return (
@@ -257,7 +313,10 @@ const Tokens = () => {
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-border/40 flex justify-end">
-                      <button className="py-1 px-3 text-sm border border-destructive/30 text-destructive rounded-md hover:bg-destructive/5 transition-colors flex items-center">
+                      <button 
+                        className="py-1 px-3 text-sm border border-destructive/30 text-destructive rounded-md hover:bg-destructive/5 transition-colors flex items-center"
+                        onClick={() => openRevokeDialog(token)}
+                      >
                         <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                         Revoke
                       </button>
@@ -299,6 +358,33 @@ const Tokens = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Alert Dialog for token revocation confirmation */}
+      <AlertDialog open={isRevokeDialogOpen} onOpenChange={setIsRevokeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke API Token</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to revoke this token? This action cannot be undone, and any applications using this token will no longer be able to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsRevokeDialogOpen(false);
+              setTokenToRevoke(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRevokeToken}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isRevoking}
+            >
+              {isRevoking ? 'Revoking...' : 'Revoke Token'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
