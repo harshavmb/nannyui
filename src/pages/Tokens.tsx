@@ -12,12 +12,17 @@ import { fetchApi } from '@/utils/config';
 import { safeFetch } from '@/utils/errorHandling';
 import { placeholderTokens } from '@/mocks/placeholderData';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const Tokens = () => {
   const [showTokens, setShowTokens] = React.useState(false);
   const [tokens, setTokens] = useState(placeholderTokens);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newToken, setNewToken] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -72,6 +77,70 @@ const Tokens = () => {
       });
   };
 
+  const handleCreateToken = async () => {
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (!accessToken) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create tokens",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsCreating(true);
+    
+    try {
+      const response = await fetchApi('api/auth-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'Development',
+          name: `API Token ${new Date().toISOString().slice(0, 10)}`,
+        }),
+      }, accessToken);
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Set the newly created token
+      setNewToken(data);
+      
+      // Open the dialog to show the new token
+      setIsDialogOpen(true);
+      
+      // Refresh the list of tokens
+      const result = await safeFetch(
+        fetchApi('api/auth-tokens', { method: 'GET' }, accessToken),
+        placeholderTokens
+      );
+      
+      if (result.data) {
+        setTokens(result.data);
+      }
+      
+      toast({
+        title: "Token Created",
+        description: "New API token has been created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating token:', error);
+      toast({
+        title: "Failed to Create Token",
+        description: "There was an error creating your API token",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -96,10 +165,14 @@ const Tokens = () => {
                 </p>
               </div>
               
-              <button className="flex items-center py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+              <Button 
+                onClick={handleCreateToken} 
+                disabled={isCreating}
+                className="flex items-center py-2 px-4"
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Token
-              </button>
+                {isCreating ? 'Creating...' : 'Create Token'}
+              </Button>
             </div>
             
             <GlassMorphicCard className="mb-8">
@@ -196,6 +269,36 @@ const Tokens = () => {
           </div>
         </TransitionWrapper>
       </div>
+
+      {/* Dialog to show the newly created token */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Token Created Successfully</DialogTitle>
+            <DialogDescription>
+              Copy your new token now. You won't be able to see it again!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 bg-muted/50 rounded-md font-mono text-sm my-4 break-all">
+            {newToken?.token || "Token information not available"}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                if (newToken?.token) {
+                  handleCopyToken(newToken.token);
+                }
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy Token
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
