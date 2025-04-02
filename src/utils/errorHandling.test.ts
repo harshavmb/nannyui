@@ -9,6 +9,9 @@ vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() })
 }));
 
+// Mock fetch for testing
+global.fetch = vi.fn();
+
 describe('createApiError', () => {
   it('should create a network error for fetch TypeError', () => {
     const fetchError = new TypeError('Failed to fetch');
@@ -27,6 +30,15 @@ describe('createApiError', () => {
     expect(error.type).toBe(ErrorType.AUTH);
     expect(error.statusCode).toBe(401);
   });
+
+  it('should create an auth error for 403 status code', () => {
+    const authError = { statusCode: 403 };
+    const error = createApiError(authError);
+    
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.type).toBe(ErrorType.AUTH);
+    expect(error.statusCode).toBe(403);
+  });
   
   it('should create a server error for 500+ status code', () => {
     const serverError = { statusCode: 500 };
@@ -36,6 +48,15 @@ describe('createApiError', () => {
     expect(error.type).toBe(ErrorType.SERVER);
     expect(error.statusCode).toBe(500);
   });
+
+  it('should create a server error for 502 status code', () => {
+    const serverError = { statusCode: 502 };
+    const error = createApiError(serverError);
+    
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.type).toBe(ErrorType.SERVER);
+    expect(error.statusCode).toBe(502);
+  });
   
   it('should create an unknown error for other cases', () => {
     const unknownError = new Error('Some other error');
@@ -43,6 +64,14 @@ describe('createApiError', () => {
     
     expect(error).toBeInstanceOf(ApiError);
     expect(error.type).toBe(ErrorType.UNKNOWN);
+  });
+
+  it('should use custom error message when provided', () => {
+    const unknownError = new Error('Some error');
+    const customMessage = 'Custom error message';
+    const error = createApiError(unknownError, customMessage);
+    
+    expect(error.message).toBe(customMessage);
   });
 });
 
@@ -105,5 +134,84 @@ describe('safeFetch', () => {
     expect(result.error).toBeInstanceOf(ApiError);
     expect(result.error?.type).toBe(ErrorType.NETWORK);
     expect(toast).toHaveBeenCalled();
+  });
+
+  it('should handle 401 unauthorized response', async () => {
+    const mockResponse = {
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized'
+    };
+    
+    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const result = await safeFetch(fetchPromise);
+    
+    expect(result.data).toBeNull();
+    expect(result.error).toBeInstanceOf(ApiError);
+    expect(result.error?.type).toBe(ErrorType.AUTH);
+    expect(result.error?.statusCode).toBe(401);
+    expect(toast).toHaveBeenCalled();
+  });
+
+  it('should handle 403 forbidden response', async () => {
+    const mockResponse = {
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden'
+    };
+    
+    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const result = await safeFetch(fetchPromise);
+    
+    expect(result.data).toBeNull();
+    expect(result.error).toBeInstanceOf(ApiError);
+    expect(result.error?.type).toBe(ErrorType.AUTH);
+    expect(result.error?.statusCode).toBe(403);
+    expect(toast).toHaveBeenCalled();
+  });
+
+  it('should handle 404 not found response', async () => {
+    const mockResponse = {
+      ok: false,
+      status: 404,
+      statusText: 'Not Found'
+    };
+    
+    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const result = await safeFetch(fetchPromise);
+    
+    expect(result.data).toBeNull();
+    expect(result.error).toBeInstanceOf(ApiError);
+    expect(result.error?.statusCode).toBe(404);
+    expect(toast).toHaveBeenCalled();
+  });
+
+  it('should handle JSON parsing errors', async () => {
+    const mockResponse = {
+      ok: true,
+      json: async () => { throw new SyntaxError('Unexpected token in JSON'); }
+    };
+    
+    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const result = await safeFetch(fetchPromise);
+    
+    expect(result.data).toBeNull();
+    expect(result.error).toBeInstanceOf(ApiError);
+    expect(toast).toHaveBeenCalled();
+  });
+
+  it('should not call toast when suppressToast is true', async () => {
+    const mockResponse = {
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error'
+    };
+    
+    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const result = await safeFetch(fetchPromise, null, true);
+    
+    expect(result.data).toBeNull();
+    expect(result.error).toBeInstanceOf(ApiError);
+    expect(toast).not.toHaveBeenCalled();
   });
 });

@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Install testing dependencies
-        run: npm install -D @testing-library/dom @testing-library/react
+        run: npm install -D @testing-library/dom @testing-library/react @testing-library/user-event
         
       - name: Lint code
         run: npm run lint
@@ -45,3 +45,4 @@ jobs:
           name: test-coverage
           path: coverage/
           retention-days: 7
+
