@@ -101,10 +101,10 @@ const Tokens = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'Development',
-          name: `API Token ${new Date().toISOString().slice(0, 10)}`,
-        }),
+        // body: JSON.stringify({
+        //   type: 'Development',
+        //   name: `API Token ${new Date().toISOString().slice(0, 10)}`,
+        // }),
       }, accessToken);
       
       if (!response.ok) {
