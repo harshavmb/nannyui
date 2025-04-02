@@ -84,7 +84,8 @@ export const showErrorToast = (error: Error | ApiError): void => {
  */
 export const safeFetch = async <T>(
   fetchPromise: Promise<Response>,
-  fallbackData?: T
+  fallbackData?: T,
+  suppressToast?: boolean
 ): Promise<{ data: T | null; error: ApiError | null }> => {
   try {
     const response = await fetchPromise;
@@ -108,7 +109,9 @@ export const safeFetch = async <T>(
       ? error 
       : createApiError(error);
       
-    showErrorToast(apiError);
+    if (!suppressToast) {
+      showErrorToast(apiError);
+    }
     
     return { 
       data: fallbackData || null, 
