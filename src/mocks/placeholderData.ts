@@ -37,7 +37,10 @@ export const placeholderAgents = [
     location: 'US East',
     created_at: '30 mins ago',
     ip_address: '10.0.0.1',
-    type: 'Development'
+    type: 'Development',
+    os_version: 'Ubuntu 20.04 LTS',
+    kernel_version: '5.4.0-42-generic',
+    user_id: 'user-123456'
   },
   { 
     id: "placeholder-2",
@@ -47,7 +50,10 @@ export const placeholderAgents = [
     location: 'US West',
     created_at: '15 mins ago',
     ip_address: '10.0.0.2',
-    type: 'Production'
+    type: 'Production',
+    os_version: 'Debian 11',
+    kernel_version: '5.10.0-18-amd64',
+    user_id: 'user-123456'
   }
 ];
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import withAuth from '@/utils/withAuth';
@@ -20,12 +21,15 @@ import ErrorBanner from '@/components/ErrorBanner';
 import { fetchApi } from '@/utils/config';
 import { safeFetch } from '@/utils/errorHandling';
 import { placeholderAgents } from '@/mocks/placeholderData';
+import AgentDetailsSheet from '@/components/AgentDetailsSheet';
 
 const Agents = () => {
   const [agents, setAgents] = useState(placeholderAgents);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState<null | typeof placeholderAgents[0]>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     // Fetch data from the API
@@ -71,6 +75,11 @@ const Agents = () => {
       )
     : agents;
 
+  const handleViewDetails = (agent: typeof placeholderAgents[0]) => {
+    setSelectedAgent(agent);
+    setIsDetailsOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -87,6 +96,7 @@ const Agents = () => {
               />
             )}
             
+            {/* Header section */}
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">Agents</h1>
@@ -101,6 +111,7 @@ const Agents = () => {
               </button>
             </div>
             
+            {/* Search and filter section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="relative max-w-md w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -125,6 +136,7 @@ const Agents = () => {
               </div>
             </div>
             
+            {/* Agents list */}
             <div className="space-y-4">
               <div className="grid grid-cols-4 gap-4 px-4 py-2 text-sm font-medium text-muted-foreground">
                 <div>Agent</div>
@@ -216,7 +228,10 @@ const Agents = () => {
                       </div>
                       
                       <div className="flex justify-end">
-                        <button className="py-1 px-3 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors flex items-center">
+                        <button 
+                          className="py-1 px-3 text-xs bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors flex items-center"
+                          onClick={() => handleViewDetails(agent)}
+                        >
                           <Activity className="h-3 w-3 mr-1" />
                           View Details
                         </button>
@@ -229,6 +244,15 @@ const Agents = () => {
           </div>
         </TransitionWrapper>
       </div>
+
+      {/* Agent details sheet */}
+      {selectedAgent && (
+        <AgentDetailsSheet 
+          agent={selectedAgent} 
+          open={isDetailsOpen} 
+          onOpenChange={setIsDetailsOpen} 
+        />
+      )}
     </div>
   );
 };
