@@ -127,7 +127,7 @@ describe('Tokens component', () => {
 
     // Wait for tokens to load
     await waitFor(() => {
-      expect(screen.getByText(/Your API Tokens/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Auth Tokens/i })).toBeInTheDocument();
     });
 
     // Initially tokens should be hidden
@@ -164,7 +164,7 @@ describe('Tokens component', () => {
 
     // Wait for tokens to load
     await waitFor(() => {
-      expect(screen.getByText(/Your API Tokens/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Auth Tokens/i })).toBeInTheDocument();
     });
 
     // Find copy buttons
@@ -195,7 +195,7 @@ describe('Tokens component', () => {
 
     // Wait for tokens to load
     await waitFor(() => {
-      expect(screen.getByText(/Your API Tokens/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Auth Tokens/i })).toBeInTheDocument();
     });
 
     // Find revoke buttons
@@ -251,7 +251,7 @@ describe('Tokens component', () => {
 
     // Wait for tokens to load
     await waitFor(() => {
-      expect(screen.getByText(/Your API Tokens/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Auth Tokens/i })).toBeInTheDocument();
     });
 
     // Find and click create token button

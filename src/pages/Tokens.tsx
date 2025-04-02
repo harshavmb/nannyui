@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, Info, Calendar, Clock } from 'lucide-react';
@@ -215,7 +216,7 @@ const Tokens = () => {
             
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Auth Tokens</h1>
+                <h1 className="text-3xl font-bold tracking-tight" role="heading">Auth Tokens</h1>
                 <p className="text-muted-foreground mt-2">
                   Manage API authentication tokens for your applications.
                 </p>
