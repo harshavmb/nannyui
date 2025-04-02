@@ -31,7 +31,7 @@ vi.mock('@/utils/errorHandling', () => ({
   ApiError: class ApiError extends Error {
     type: errorHandling.ErrorType;
     statusCode?: number;
-    constructor(message: string, type = 'unknown' as errorHandling.ErrorType, statusCode?: number) {
+    constructor(message: string, type = errorHandling.ErrorType.UNKNOWN, statusCode?: number) {
       super(message);
       this.name = 'ApiError';
       this.type = type;

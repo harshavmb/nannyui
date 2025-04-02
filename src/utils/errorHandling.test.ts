@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApiError, ApiError, ErrorType, safeFetch } from './errorHandling';
 import { toast } from '@/hooks/use-toast';
