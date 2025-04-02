@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -26,7 +27,23 @@ vi.mock('@/components/TransitionWrapper', () => ({
 
 vi.mock('@/utils/errorHandling', () => ({
   safeFetch: vi.fn(),
-  showErrorToast: vi.fn()
+  showErrorToast: vi.fn(),
+  ApiError: class ApiError extends Error {
+    type: errorHandling.ErrorType;
+    statusCode?: number;
+    constructor(message: string, type = 'unknown' as errorHandling.ErrorType, statusCode?: number) {
+      super(message);
+      this.name = 'ApiError';
+      this.type = type;
+      this.statusCode = statusCode;
+    }
+  },
+  ErrorType: {
+    NETWORK: 'network',
+    AUTH: 'auth',
+    SERVER: 'server',
+    UNKNOWN: 'unknown'
+  }
 }));
 
 vi.mock('@/utils/config', () => ({
@@ -144,7 +161,7 @@ describe('Dashboard component', () => {
     vi.mocked(config.fetchApi).mockResolvedValue(mockGitHubResponse as Response);
     vi.mocked(errorHandling.safeFetch).mockResolvedValue({ 
       data: null, 
-      error: new Error('API error') 
+      error: new errorHandling.ApiError('API error', errorHandling.ErrorType.NETWORK) 
     });
 
     render(

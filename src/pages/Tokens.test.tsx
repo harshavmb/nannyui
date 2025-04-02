@@ -30,7 +30,23 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 vi.mock('@/utils/errorHandling', () => ({
-  safeFetch: vi.fn()
+  safeFetch: vi.fn(),
+  ApiError: class ApiError extends Error {
+    type: 'network' | 'auth' | 'server' | 'unknown';
+    statusCode?: number;
+    constructor(message: string, type = 'unknown' as 'network' | 'auth' | 'server' | 'unknown', statusCode?: number) {
+      super(message);
+      this.name = 'ApiError';
+      this.type = type;
+      this.statusCode = statusCode;
+    }
+  },
+  ErrorType: {
+    NETWORK: 'network',
+    AUTH: 'auth',
+    SERVER: 'server',
+    UNKNOWN: 'unknown'
+  }
 }));
 
 vi.mock('@/utils/config', () => ({
@@ -77,7 +93,7 @@ describe('Tokens component', () => {
   it('should show error banner when token fetch fails', async () => {
     vi.mocked(errorHandling.safeFetch).mockResolvedValue({ 
       data: null, 
-      error: new Error('Failed to fetch tokens') 
+      error: new errorHandling.ApiError('Failed to fetch tokens', 'network')
     });
 
     localStorage.setItem('access_token', 'mock-token');

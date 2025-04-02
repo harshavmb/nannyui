@@ -82,12 +82,12 @@ describe('safeFetch', () => {
   
   it('should return data for successful response', async () => {
     const mockData = { success: true };
-    const mockResponse = {
-      ok: true,
-      json: async () => mockData
-    };
+    const mockResponse = new Response(
+      JSON.stringify(mockData),
+      { status: 200, statusText: 'OK' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toEqual(mockData);
@@ -96,13 +96,12 @@ describe('safeFetch', () => {
   });
   
   it('should return error for non-ok response', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Server error' }),
+      { status: 500, statusText: 'Internal Server Error' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toBeNull();
@@ -113,13 +112,12 @@ describe('safeFetch', () => {
   
   it('should use fallback data when provided', async () => {
     const fallbackData = { fallback: true };
-    const mockResponse = {
-      ok: false,
-      status: 404,
-      statusText: 'Not Found'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Not Found' }),
+      { status: 404, statusText: 'Not Found' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise, fallbackData);
     
     expect(result.data).toEqual(fallbackData);
@@ -137,13 +135,12 @@ describe('safeFetch', () => {
   });
 
   it('should handle 401 unauthorized response', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 401,
-      statusText: 'Unauthorized'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, statusText: 'Unauthorized' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toBeNull();
@@ -154,13 +151,12 @@ describe('safeFetch', () => {
   });
 
   it('should handle 403 forbidden response', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 403,
-      statusText: 'Forbidden'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Forbidden' }),
+      { status: 403, statusText: 'Forbidden' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toBeNull();
@@ -171,13 +167,12 @@ describe('safeFetch', () => {
   });
 
   it('should handle 404 not found response', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 404,
-      statusText: 'Not Found'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Not Found' }),
+      { status: 404, statusText: 'Not Found' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toBeNull();
@@ -187,12 +182,12 @@ describe('safeFetch', () => {
   });
 
   it('should handle JSON parsing errors', async () => {
-    const mockResponse = {
-      ok: true,
-      json: async () => { throw new SyntaxError('Unexpected token in JSON'); }
-    };
+    const mockResponse = new Response(
+      'Invalid JSON',
+      { status: 200, statusText: 'OK' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise);
     
     expect(result.data).toBeNull();
@@ -201,13 +196,12 @@ describe('safeFetch', () => {
   });
 
   it('should not call toast when suppressToast is true', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error'
-    };
+    const mockResponse = new Response(
+      JSON.stringify({ error: 'Server Error' }),
+      { status: 500, statusText: 'Internal Server Error' }
+    );
     
-    const fetchPromise = Promise.resolve(mockResponse as Response);
+    const fetchPromise = Promise.resolve(mockResponse);
     const result = await safeFetch(fetchPromise, null, true);
     
     expect(result.data).toBeNull();
