@@ -65,7 +65,7 @@ const Agents = () => {
   // Filter agents based on search term
   const filteredAgents = searchTerm 
     ? agents.filter(agent => 
-        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         agent.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
         agent.location.toLowerCase().includes(searchTerm.toLowerCase())
       )
@@ -147,7 +147,7 @@ const Agents = () => {
                           <Server className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-medium">{agent.name}</h3>
+                          <h3 className="font-medium">{agent.hostname}</h3>
                           <p className="text-xs text-muted-foreground">{agent.type}</p>
                         </div>
                       </div>
@@ -162,7 +162,7 @@ const Agents = () => {
                           <span className="capitalize">{agent.status}</span>
                         </div>
                         <span className="ml-2 text-xs text-muted-foreground">
-                          {agent.lastSeen}
+                          {agent.created_at}
                         </span>
                       </div>
                       
@@ -175,7 +175,7 @@ const Agents = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="h-3 w-3 rounded-full bg-primary/30 mr-2"></div>
-                          <span>{agent.location}</span>
+                          <span>{agent.ip_address}</span>
                         </div>
                         
                         <button className="p-1.5 rounded-md hover:bg-muted/80 transition-colors">

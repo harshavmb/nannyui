@@ -31,20 +31,22 @@ export const placeholderTokens = [
 export const placeholderAgents = [
   { 
     id: "placeholder-1",
-    name: 'dev-server-01', 
+    hostname: 'dev-server-01', 
     status: 'online', 
     version: 'v1.5.0',
     location: 'US East',
-    lastSeen: '30 mins ago',
+    created_at: '30 mins ago',
+    ip_address: '10.0.0.1',
     type: 'Development'
   },
   { 
     id: "placeholder-2",
-    name: 'prod-server-01', 
+    hostname: 'prod-server-01', 
     status: 'online', 
     version: 'v1.5.0',
     location: 'US West',
-    lastSeen: '15 mins ago',
+    created_at: '15 mins ago',
+    ip_address: '10.0.0.2',
     type: 'Production'
   }
 ];
