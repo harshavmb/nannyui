@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import Tokens from "./pages/Tokens";
 import Agents from "./pages/Agents";
+import Diagnostics from "./pages/Diagnostics";
 import Documentation from "./pages/Documentation";
 import Contact from "./pages/Contact";
 import Cookies from "./pages/Cookies";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/account" element={<Account />} />
               <Route path="/tokens" element={<Tokens />} />
               <Route path="/agents" element={<Agents />} />
+              <Route path="/diagnostics" element={<Diagnostics />} />
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cookies" element={<Cookies />} />
