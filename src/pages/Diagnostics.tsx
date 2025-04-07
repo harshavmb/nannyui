@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   createDiagnostic, 
   continueDiagnostic, 
@@ -14,15 +15,18 @@ import {
   deleteDiagnostic,
   DiagnosticRequest,
   DiagnosticContinueRequest,
-  DiagnosticSummary
+  DiagnosticSummary,
+  DiagnosticResponse
 } from '@/services/diagnosticApi';
 import { createUpdateAgent, getAgents, AgentInfo } from '@/services/agentApi';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { Terminal, Trash2, Plus, Send, RefreshCw } from 'lucide-react';
+import { Terminal, Trash2, Plus, Send, RefreshCw, Search, Save, Clipboard, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import CommandOutput from '@/components/CommandOutput';
+import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 const Diagnostics: React.FC = () => {
   const [activeTab, setActiveTab] = useState('agents');
@@ -31,8 +35,12 @@ const Diagnostics: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [userPrompt, setUserPrompt] = useState('');
   const [diagnosticId, setDiagnosticId] = useState<string | null>(null);
-  const [conversation, setConversation] = useState<Array<{role: string; content: string; timestamp?: string}>>([]);
+  const [conversation, setConversation] = useState<Array<{role: string; content: string; timestamp?: string; commands?: string[]; log_files?: string[]}>>([]); 
   const [diagnosticSummary, setDiagnosticSummary] = useState<DiagnosticSummary | null>(null);
+  const [triageProgress, setTriageProgress] = useState(0);
+  const [commandOutputs, setCommandOutputs] = useState<Record<string, string>>({});
+  const [processingCommand, setProcessingCommand] = useState<string | null>(null);
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   const { toast } = useToast();
   const conversationEndRef = useRef<HTMLDivElement>(null);
   
@@ -56,6 +64,51 @@ const Diagnostics: React.FC = () => {
       conversationEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [conversation]);
+  
+  // Simulate triage progress
+  useEffect(() => {
+    let progressInterval: NodeJS.Timeout;
+    
+    if (loading && triageProgress < 90) {
+      progressInterval = setInterval(() => {
+        setTriageProgress(prev => Math.min(prev + 5, 90));
+      }, 500);
+    } else if (!loading) {
+      setTriageProgress(0);
+    }
+    
+    return () => {
+      if (progressInterval) clearInterval(progressInterval);
+    };
+  }, [loading]);
+
+  // Load saved session from localStorage
+  useEffect(() => {
+    const savedSession = localStorage.getItem('diagnosticSession');
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        if (session.diagnosticId) {
+          setDiagnosticId(session.diagnosticId);
+          setSelectedAgent(session.selectedAgent || null);
+          setConversation(session.conversation || []);
+          setCommandOutputs(session.commandOutputs || {});
+        }
+      } catch (error) {
+        console.error('Error loading saved diagnostic session:', error);
+      }
+    }
+  }, []);
+
+  // Save session to localStorage
+  const saveSessionToLocalStorage = (data: {
+    diagnosticId: string | null;
+    selectedAgent: string | null;
+    conversation: Array<any>;
+    commandOutputs: Record<string, string>;
+  }) => {
+    localStorage.setItem('diagnosticSession', JSON.stringify(data));
+  };
   
   const fetchAgents = async () => {
     setLoading(true);
@@ -107,19 +160,34 @@ const Diagnostics: React.FC = () => {
     setLoading(true);
     
     const payload: DiagnosticRequest = {
-      prompt: userPrompt,
-      agentId: selectedAgent,
+      agent_id: selectedAgent,
+      issue: userPrompt,
     };
     
     const result = await createDiagnostic(payload);
     
     if (result) {
-      setDiagnosticId(result.id);
-      setConversation([
+      const newConversation = [
         { role: 'user', content: userPrompt },
-        { role: 'assistant', content: result.response }
-      ]);
+        { 
+          role: 'assistant', 
+          content: result.response,
+          commands: result.commands || [],
+          log_files: result.log_files || []
+        }
+      ];
+      
+      setDiagnosticId(result.id);
+      setConversation(newConversation);
       setUserPrompt('');
+      
+      // Save session to localStorage
+      saveSessionToLocalStorage({
+        diagnosticId: result.id,
+        selectedAgent,
+        conversation: newConversation,
+        commandOutputs: {}
+      });
     } else {
       toast({
         title: 'Error',
@@ -129,6 +197,8 @@ const Diagnostics: React.FC = () => {
     }
     
     setLoading(false);
+    setTriageProgress(100);
+    setTimeout(() => setTriageProgress(0), 1000);
   };
   
   const continueDiagnosticChat = async () => {
@@ -144,18 +214,33 @@ const Diagnostics: React.FC = () => {
     setLoading(true);
     
     const payload: DiagnosticContinueRequest = {
-      userInput: userPrompt,
+      command_output: userPrompt,
     };
     
     const result = await continueDiagnostic(diagnosticId, payload);
     
     if (result) {
-      setConversation([
+      const newConversation = [
         ...conversation,
         { role: 'user', content: userPrompt },
-        { role: 'assistant', content: result.response }
-      ]);
+        { 
+          role: 'assistant', 
+          content: result.response,
+          commands: result.commands || [],
+          log_files: result.log_files || []
+        }
+      ];
+      
+      setConversation(newConversation);
       setUserPrompt('');
+      
+      // Save updated conversation to localStorage
+      saveSessionToLocalStorage({
+        diagnosticId,
+        selectedAgent,
+        conversation: newConversation,
+        commandOutputs
+      });
     } else {
       toast({
         title: 'Error',
@@ -165,6 +250,8 @@ const Diagnostics: React.FC = () => {
     }
     
     setLoading(false);
+    setTriageProgress(100);
+    setTimeout(() => setTriageProgress(0), 1000);
   };
   
   const fetchDiagnosticSummary = async () => {
@@ -210,6 +297,10 @@ const Diagnostics: React.FC = () => {
         setDiagnosticId(null);
         setConversation([]);
         setDiagnosticSummary(null);
+        setCommandOutputs({});
+        
+        // Clear saved session
+        localStorage.removeItem('diagnosticSession');
       }
     } else {
       toast({
@@ -221,6 +312,49 @@ const Diagnostics: React.FC = () => {
     
     setLoading(false);
   };
+
+  const handleCommandExecution = (command: string) => {
+    setProcessingCommand(command);
+  };
+
+  const saveCommandOutput = (command: string, output: string) => {
+    const updatedOutputs = { ...commandOutputs, [command]: output };
+    setCommandOutputs(updatedOutputs);
+    setProcessingCommand(null);
+    
+    // Save to localStorage
+    saveSessionToLocalStorage({
+      diagnosticId,
+      selectedAgent,
+      conversation,
+      commandOutputs: updatedOutputs
+    });
+    
+    toast({
+      title: 'Output saved',
+      description: 'Command output has been saved',
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCommand(text);
+    setTimeout(() => setCopiedCommand(null), 2000);
+    
+    toast({
+      title: 'Copied!',
+      description: 'Command copied to clipboard',
+    });
+  };
+
+  const handleSubmitAllCommandOutputs = () => {
+    // Combine all command outputs into a single string
+    const allOutputs = Object.entries(commandOutputs)
+      .map(([cmd, output]) => `Command: ${cmd}\nOutput:\n${output}`)
+      .join('\n\n');
+    
+    setUserPrompt(allOutputs);
+  };
   
   const handlePromptKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -231,6 +365,20 @@ const Diagnostics: React.FC = () => {
         startDiagnostic();
       }
     }
+  };
+
+  const clearSession = () => {
+    setDiagnosticId(null);
+    setConversation([]);
+    setDiagnosticSummary(null);
+    setCommandOutputs({});
+    setUserPrompt('');
+    localStorage.removeItem('diagnosticSession');
+    
+    toast({
+      title: 'Session cleared',
+      description: 'Diagnostic session has been reset',
+    });
   };
 
   return (
@@ -404,28 +552,44 @@ const Diagnostics: React.FC = () => {
                   </CardTitle>
                 </div>
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchDiagnosticSummary}
-                    disabled={!diagnosticId || loading}
-                    className="bg-transparent border-gray-700 hover:bg-gray-800 text-gray-400"
-                  >
-                    Get Summary
-                  </Button>
                   {diagnosticId && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteDiagnostic(diagnosticId)}
-                      disabled={loading}
-                      className="bg-transparent border-gray-700 hover:bg-gray-800 text-gray-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchDiagnosticSummary}
+                        disabled={!diagnosticId || loading}
+                        className="bg-transparent border-gray-700 hover:bg-gray-800 text-gray-400"
+                      >
+                        Get Summary
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteDiagnostic(diagnosticId)}
+                        disabled={loading}
+                        className="bg-transparent border-gray-700 hover:bg-gray-800 text-gray-400"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearSession}
+                        className="bg-transparent border-gray-700 hover:bg-gray-800 text-gray-400"
+                      >
+                        Clear Session
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
+              {loading && (
+                <div className="mt-2">
+                  <p className="text-xs text-green-500 mb-1">Diagnosing issue... {triageProgress}%</p>
+                  <Progress value={triageProgress} className="h-1 bg-gray-800" />
+                </div>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <div className="font-mono p-5 min-h-[500px] max-h-[500px] overflow-y-auto bg-black">
@@ -442,14 +606,109 @@ const Diagnostics: React.FC = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
-                      className={`mb-4 ${msg.role === 'user' ? 'text-yellow-300' : 'text-green-400'}`}
+                      className={`mb-6 ${msg.role === 'user' ? 'text-yellow-300' : 'text-green-400'}`}
                     >
                       <div className="flex">
                         <span className="font-bold mr-2">
                           {msg.role === 'user' ? '$ User:' : '> System:'}
                         </span>
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                        <div className="whitespace-pre-wrap flex-1">{msg.content}</div>
                       </div>
+                      
+                      {msg.role === 'assistant' && msg.commands && msg.commands.length > 0 && (
+                        <div className="mt-4 ml-4 border-l-2 border-green-700 pl-4">
+                          <p className="text-green-300 font-bold mb-2">Suggested Commands:</p>
+                          <div className="space-y-3">
+                            {msg.commands.map((command, cmdIdx) => (
+                              <div key={cmdIdx} className="bg-gray-900 rounded-md p-2">
+                                <div className="flex items-center justify-between">
+                                  <code className="text-white">{command}</code>
+                                  <div className="flex space-x-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-7 text-blue-400 hover:text-blue-300 hover:bg-transparent"
+                                      onClick={() => copyToClipboard(command)}
+                                    >
+                                      {copiedCommand === command ? (
+                                        <Check className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <Clipboard className="h-3.5 w-3.5" />
+                                      )}
+                                    </Button>
+                                    <Drawer>
+                                      <DrawerTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 text-green-400 hover:text-green-300 hover:bg-transparent"
+                                        >
+                                          Save Output
+                                        </Button>
+                                      </DrawerTrigger>
+                                      <DrawerContent className="bg-gray-900 text-white">
+                                        <div className="p-4 space-y-4">
+                                          <h3 className="text-lg font-semibold">Enter Command Output</h3>
+                                          <p className="text-sm text-gray-400">
+                                            Paste the output of <code className="bg-gray-800 px-1 rounded">{command}</code>
+                                          </p>
+                                          <Textarea 
+                                            className="min-h-[200px] bg-black text-green-400 font-mono border-gray-700"
+                                            placeholder="Paste command output here..."
+                                            value={commandOutputs[command] || ''}
+                                            onChange={(e) => setCommandOutputs({...commandOutputs, [command]: e.target.value})}
+                                          />
+                                          <div className="flex justify-end space-x-2">
+                                            <DrawerClose asChild>
+                                              <Button variant="outline">Cancel</Button>
+                                            </DrawerClose>
+                                            <DrawerClose asChild>
+                                              <Button onClick={() => saveCommandOutput(command, commandOutputs[command] || '')}>
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Save Output
+                                              </Button>
+                                            </DrawerClose>
+                                          </div>
+                                        </div>
+                                      </DrawerContent>
+                                    </Drawer>
+                                  </div>
+                                </div>
+                                {commandOutputs[command] && (
+                                  <div className="mt-2">
+                                    <CommandOutput output={commandOutputs[command]} maxLines={5} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {Object.keys(commandOutputs).length > 0 && (
+                            <div className="mt-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleSubmitAllCommandOutputs}
+                                className="bg-green-700 hover:bg-green-800 border-green-600"
+                              >
+                                Submit All Command Outputs
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {msg.role === 'assistant' && msg.log_files && msg.log_files.length > 0 && (
+                        <div className="mt-4 ml-4 border-l-2 border-blue-700 pl-4">
+                          <p className="text-blue-300 font-bold mb-2">Suggested Log Files to Check:</p>
+                          <ul className="list-disc pl-5 space-y-1">
+                            {msg.log_files.map((logFile, logIdx) => (
+                              <li key={logIdx} className="text-blue-200">
+                                <code className="bg-blue-900/30 px-1 py-0.5 rounded">{logFile}</code>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </motion.div>
                   ))
                 )}
@@ -511,7 +770,7 @@ const Diagnostics: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-medium mb-2">Initial Problem</h3>
                   <div className="bg-muted p-4 rounded-md">
-                    {diagnosticSummary.prompt}
+                    {diagnosticSummary.issue}
                   </div>
                 </div>
 
@@ -537,7 +796,9 @@ const Diagnostics: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                        <div className="whitespace-pre-wrap">
+                          <CommandOutput output={msg.content} maxLines={10} />
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -5,38 +5,42 @@ import { safeFetch } from '@/utils/errorHandling';
 
 // Types for diagnostic API interaction
 export interface DiagnosticRequest {
-  prompt: string;
-  agentId: string;
+  agent_id: string;
+  issue: string;
 }
 
 export interface DiagnosticResponse {
   id: string;
-  prompt: string;
+  issue: string;
   response: string;
-  agentId: string;
+  agent_id: string;
   status: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
+  commands?: string[];
+  log_files?: string[];
 }
 
 export interface DiagnosticContinueRequest {
-  userInput: string;
+  command_output: string;
 }
 
 export interface DiagnosticSummary {
   id: string;
-  prompt: string;
+  issue: string;
   response: string;
-  agentId: string;
+  agent_id: string;
   status: string;
   summary: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
   messages: Array<{
     role: string;
     content: string;
     timestamp: string;
   }>;
+  commands?: string[];
+  log_files?: string[];
 }
 
 // Create a new diagnostic session
