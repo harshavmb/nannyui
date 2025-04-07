@@ -23,6 +23,8 @@ export interface DiagnosticResponse {
 
 export interface DiagnosticContinueRequest {
   command_output: string;
+  agent_id: string;
+  diagnostic_id: string;
 }
 
 export interface DiagnosticSummary {
@@ -63,13 +65,20 @@ export const createDiagnostic = async (payload: DiagnosticRequest): Promise<Diag
 };
 
 // Continue an existing diagnostic conversation
-export const continueDiagnostic = async (id: string, payload: DiagnosticContinueRequest): Promise<DiagnosticResponse | null> => {
+export const continueDiagnostic = async (id: string, agentId: string, payload: { command_output: string }): Promise<DiagnosticResponse | null> => {
   const token = getAccessToken();
+  
+  // Build the complete payload expected by the API
+  const completePayload: DiagnosticContinueRequest = {
+    command_output: payload.command_output,
+    agent_id: agentId,
+    diagnostic_id: id
+  };
   
   const { data, error } = await safeFetch<DiagnosticResponse>(
     fetchApi(`api/diagnostic/${id}/continue`, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(completePayload),
     }, token)
   );
   

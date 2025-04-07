@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import withAuth from '@/utils/withAuth';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ import {
   getDiagnosticSummary, 
   deleteDiagnostic,
   DiagnosticRequest,
-  DiagnosticContinueRequest,
   DiagnosticSummary,
   DiagnosticResponse
 } from '@/services/diagnosticApi';
@@ -202,7 +200,7 @@ const Diagnostics: React.FC = () => {
   };
   
   const continueDiagnosticChat = async () => {
-    if (!diagnosticId || !userPrompt.trim()) {
+    if (!diagnosticId || !userPrompt.trim() || !selectedAgent) {
       toast({
         title: 'Error',
         description: 'Cannot continue conversation without an active diagnostic session',
@@ -213,11 +211,13 @@ const Diagnostics: React.FC = () => {
     
     setLoading(true);
     
-    const payload: DiagnosticContinueRequest = {
+    // Modified payload to include just command_output
+    const payload = {
       command_output: userPrompt,
     };
     
-    const result = await continueDiagnostic(diagnosticId, payload);
+    // Pass diagnosticId and agentId separately to the continueDiagnostic function
+    const result = await continueDiagnostic(diagnosticId, selectedAgent, payload);
     
     if (result) {
       const newConversation = [
