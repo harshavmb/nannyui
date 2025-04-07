@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import withAuth from '@/utils/withAuth';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,9 @@ import {
   deleteDiagnostic,
   DiagnosticRequest,
   DiagnosticSummary,
-  DiagnosticResponse
+  DiagnosticResponse,
+  SystemMetrics,
+  gatherSystemMetrics
 } from '@/services/diagnosticApi';
 import { createUpdateAgent, getAgents, AgentInfo } from '@/services/agentApi';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -162,6 +165,16 @@ const Diagnostics: React.FC = () => {
       issue: userPrompt,
     };
     
+    // Attempt to gather system metrics
+    try {
+      const metrics = await gatherSystemMetrics(selectedAgent);
+      console.log('System metrics gathered:', metrics);
+      // We can use metrics later when continuing the diagnostic
+    } catch (error) {
+      console.error('Failed to gather system metrics:', error);
+      // Continue with diagnostic even if metrics gathering fails
+    }
+    
     const result = await createDiagnostic(payload);
     
     if (result) {
@@ -200,7 +213,7 @@ const Diagnostics: React.FC = () => {
   };
   
   const continueDiagnosticChat = async () => {
-    if (!diagnosticId || !userPrompt.trim() || !selectedAgent) {
+    if (!diagnosticId || !userPrompt.trim()) {
       toast({
         title: 'Error',
         description: 'Cannot continue conversation without an active diagnostic session',
@@ -211,13 +224,9 @@ const Diagnostics: React.FC = () => {
     
     setLoading(true);
     
-    // Modified payload to include just command_output
-    const payload = {
-      command_output: userPrompt,
-    };
-    
-    // Pass diagnosticId and agentId separately to the continueDiagnostic function
-    const result = await continueDiagnostic(diagnosticId, selectedAgent, payload);
+    // No need to include agent_id or diagnostic_id in the payload anymore
+    // The continueDiagnostic function now expects just the command output
+    const result = await continueDiagnostic(diagnosticId, userPrompt);
     
     if (result) {
       const newConversation = [

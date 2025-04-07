@@ -9,6 +9,16 @@ export interface DiagnosticRequest {
   issue: string;
 }
 
+export interface SystemMetrics {
+  cpu_info: string[];
+  cpu_usage: number;
+  memory_total: number;
+  memory_used: number;
+  memory_free: number;
+  disk_usage: Record<string, number>;
+  fs_usage: Record<string, string>;
+}
+
 export interface DiagnosticResponse {
   id: string;
   issue: string;
@@ -22,9 +32,8 @@ export interface DiagnosticResponse {
 }
 
 export interface DiagnosticContinueRequest {
-  command_output: string;
-  agent_id: string;
-  diagnostic_id: string;
+  diagnostic_output: string[];
+  system_metrics?: SystemMetrics;
 }
 
 export interface DiagnosticSummary {
@@ -65,14 +74,12 @@ export const createDiagnostic = async (payload: DiagnosticRequest): Promise<Diag
 };
 
 // Continue an existing diagnostic conversation
-export const continueDiagnostic = async (id: string, agentId: string, payload: { command_output: string }): Promise<DiagnosticResponse | null> => {
+export const continueDiagnostic = async (id: string, commandOutput: string): Promise<DiagnosticResponse | null> => {
   const token = getAccessToken();
   
   // Build the complete payload expected by the API
   const completePayload: DiagnosticContinueRequest = {
-    command_output: payload.command_output,
-    agent_id: agentId,
-    diagnostic_id: id
+    diagnostic_output: [commandOutput], // Wrap the command output as a single element array
   };
   
   const { data, error } = await safeFetch<DiagnosticResponse>(
@@ -124,4 +131,22 @@ export const deleteDiagnostic = async (id: string): Promise<boolean> => {
   }
   
   return true;
+};
+
+// Function to gather system metrics
+export const gatherSystemMetrics = async (agentId: string): Promise<SystemMetrics | null> => {
+  const token = getAccessToken();
+  
+  const { data, error } = await safeFetch<SystemMetrics>(
+    fetchApi(`api/agent/${agentId}/metrics`, {
+      method: 'GET',
+    }, token)
+  );
+  
+  if (error) {
+    console.error('Error gathering system metrics:', error);
+    return null;
+  }
+  
+  return data;
 };
