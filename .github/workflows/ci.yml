@@ -22,10 +22,10 @@ jobs:
           
       - name: Install dependencies
         run: npm ci
-
-      - name: Install testing dependencies
-        run: npm install -D @testing-library/dom @testing-library/react @testing-library/user-event @testing-library/jest-dom
         
+      - name: Install Vite and testing dependencies
+        run: npm install -D vite @vitejs/plugin-react-swc vitest @testing-library/dom @testing-library/react @testing-library/user-event @testing-library/jest-dom
+
       - name: Lint code
         run: npm run lint
         
