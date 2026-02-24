@@ -25,17 +25,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserRecord | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<UserRecord | null>(() => {
+    return pb.authStore.isValid ? (pb.authStore.record as unknown as UserRecord) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return pb.authStore.isValid ? pb.authStore.token : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial auth state
-    if (pb.authStore.isValid) {
-      setUser(pb.authStore.record as unknown as UserRecord);
-      setToken(pb.authStore.token);
-    }
-    setLoading(false);
+    setTimeout(() => setLoading(false), 0);
 
     // Listen for auth changes
     const unsubscribe = pb.authStore.onChange((_token, record) => {

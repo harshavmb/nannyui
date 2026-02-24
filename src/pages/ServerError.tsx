@@ -223,10 +223,10 @@ const ServerError = () => {
                     <strong className="text-foreground">HTTP Status:</strong> 500 Internal Server Error
                   </div>
                   <div>
-                    <strong className="text-foreground">Incident ID:</strong> {Math.random().toString(36).substring(2, 10).toUpperCase()}
+                    <strong className="text-foreground">Incident ID:</strong> {React.useState(() => Math.random().toString(36).substring(2, 10).toUpperCase())[0]}
                   </div>
                   <div>
-                    <strong className="text-foreground">Timestamp:</strong> {new Date().toISOString()}
+                    <strong className="text-foreground">Timestamp:</strong> {React.useState(() => new Date().toISOString())[0]}
                   </div>
                   <div>
                     <strong className="text-foreground">Monitoring:</strong> eBPF agents active

@@ -8,6 +8,17 @@ import * as matchers from '@testing-library/jest-dom/matchers';
 // Extend Vitest's expect method with methods from react-testing-library
 expect.extend(matchers);
 
+// Mock getBBox for SVG elements (used by mermaid)
+if (typeof window !== 'undefined') {
+  // @ts-expect-error - SVGElement is not fully typed in JSDOM
+  window.SVGElement.prototype.getBBox = () => ({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
+}
+
 // Run cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
   cleanup();

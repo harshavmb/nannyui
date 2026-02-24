@@ -140,7 +140,10 @@ export const PatchExecutionDialog: React.FC<PatchExecutionDialogProps> = ({
   useEffect(() => {
     if (open && !hasTriggeredRef.current && status === 'idle') {
       hasTriggeredRef.current = true;
-      startExecution();
+      // Use setTimeout to avoid synchronous state updates during render
+      setTimeout(() => {
+        startExecution();
+      }, 0);
     }
   }, [open, status, startExecution]);
 

@@ -6,7 +6,9 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const CookieConsent: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => {
+    return !localStorage.getItem('cookiesAccepted');
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -15,7 +17,7 @@ const CookieConsent: React.FC = () => {
     
     if (!hasAcceptedCookies) {
       // Show the banner if the user hasn't accepted cookies yet
-      setIsVisible(true);
+      setTimeout(() => setIsVisible(true), 0);
     }
   }, []);
 
