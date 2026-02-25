@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DocDetail from '../DocDetail';
@@ -268,8 +268,9 @@ describe('DocDetail - TOC Navigation', () => {
 
   it('should scroll to heading based on URL hash on page load', async () => {
     // Mock window.location.hash
+    const originalLocation = window.location;
     delete (window as any).location;
-    (window as any).location = { hash: '#section-one' };
+    (window as any).location = { ...originalLocation, hash: '#section-one' };
 
     const { container } = render(
       <MemoryRouter initialEntries={['/docs/quickstart#section-one']}>
@@ -285,16 +286,21 @@ describe('DocDetail - TOC Navigation', () => {
       expect(tocLinks.length).toBeGreaterThan(0);
     });
 
-    // Wait for scroll effect
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Wait for the 100ms setTimeout in the component's hash scroll effect
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    });
 
     // Should have called getElementById to find the element
     expect(document.getElementById).toHaveBeenCalledWith('section-one');
-  });
+    
+    (window as any).location = originalLocation;
+  }, 15000);
 
   it('should handle URL with fragment identifier like #5-verify-service-status', async () => {
+    const originalLocation = window.location;
     delete (window as any).location;
-    (window as any).location = { hash: '#5-verify-service-status' };
+    (window as any).location = { ...originalLocation, hash: '#5-verify-service-status' };
 
     const { container } = render(
       <MemoryRouter initialEntries={['/docs/quickstart#5-verify-service-status']}>
@@ -310,12 +316,16 @@ describe('DocDetail - TOC Navigation', () => {
       expect(tocLinks.length).toBeGreaterThan(0);
     });
 
-    // Wait for scroll effect
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Wait for the 100ms setTimeout in the component's hash scroll effect
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    });
 
     // Should attempt to scroll to the section
     expect(document.getElementById).toHaveBeenCalledWith('5-verify-service-status');
-  });
+    
+    (window as any).location = originalLocation;
+  }, 15000);
 });
 
 describe('DocDetail - Document Loading', () => {

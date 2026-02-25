@@ -59,9 +59,10 @@ const DocDetail = () => {
     const hash = window.location.hash.substring(1); // Remove the '#'
     if (hash && headings.length > 0) {
       // Wait for content to render, then scroll
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         scrollToHeading(hash);
       }, 100);
+      return () => clearTimeout(timeoutId);
     }
   }, [headings, scrollToHeading]);
   

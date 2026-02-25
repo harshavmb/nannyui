@@ -11,6 +11,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ServerError = () => {
   const navigate = useNavigate();
+  const [incidentId] = React.useState(() => Math.random().toString(36).substring(2, 10).toUpperCase());
+  const [timestamp] = React.useState(() => new Date().toISOString());
 
   const handleRefresh = () => {
     window.location.reload();
@@ -223,10 +225,10 @@ const ServerError = () => {
                     <strong className="text-foreground">HTTP Status:</strong> 500 Internal Server Error
                   </div>
                   <div>
-                    <strong className="text-foreground">Incident ID:</strong> {React.useState(() => Math.random().toString(36).substring(2, 10).toUpperCase())[0]}
+                    <strong className="text-foreground">Incident ID:</strong> {incidentId}
                   </div>
                   <div>
-                    <strong className="text-foreground">Timestamp:</strong> {React.useState(() => new Date().toISOString())[0]}
+                    <strong className="text-foreground">Timestamp:</strong> {timestamp}
                   </div>
                   <div>
                     <strong className="text-foreground">Monitoring:</strong> eBPF agents active

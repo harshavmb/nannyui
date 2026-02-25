@@ -31,11 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(() => {
     return pb.authStore.isValid ? pb.authStore.token : null;
   });
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 0);
-
     // Listen for auth changes
     const unsubscribe = pb.authStore.onChange((_token, record) => {
       setUser(record as unknown as UserRecord | null);
