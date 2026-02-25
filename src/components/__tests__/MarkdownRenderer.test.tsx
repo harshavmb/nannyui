@@ -444,8 +444,9 @@ describe('MarkdownRenderer', () => {
       );
 
       await waitFor(() => {
-        const syntaxHighlighter = container.querySelector('div[style*="background"]');
-        expect(syntaxHighlighter).toBeInTheDocument();
+        // Find the syntax highlighter container by looking for the code element
+        const codeElement = container.querySelector('code[style*="white-space: pre"]');
+        expect(codeElement).toBeInTheDocument();
         
         // Should have copy button for regular code
         const copyButton = container.querySelector('button[title="Copy code"]');

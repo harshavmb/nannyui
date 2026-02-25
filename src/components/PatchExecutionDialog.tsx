@@ -140,7 +140,8 @@ export const PatchExecutionDialog: React.FC<PatchExecutionDialogProps> = ({
   useEffect(() => {
     if (open && !hasTriggeredRef.current && status === 'idle') {
       hasTriggeredRef.current = true;
-      startExecution();
+      // Defer to avoid synchronous setState in effect body
+      queueMicrotask(() => void startExecution());
     }
   }, [open, status, startExecution]);
 

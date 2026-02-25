@@ -1,23 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const CookieConsent: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => {
+    return !localStorage.getItem('cookiesAccepted');
+  });
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Check if the user has already accepted cookies
-    const hasAcceptedCookies = localStorage.getItem('cookiesAccepted');
-    
-    if (!hasAcceptedCookies) {
-      // Show the banner if the user hasn't accepted cookies yet
-      setIsVisible(true);
-    }
-  }, []);
 
   const acceptCookies = () => {
     // Save the acceptance to localStorage
