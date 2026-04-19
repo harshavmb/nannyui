@@ -267,64 +267,78 @@ describe('DocDetail - TOC Navigation', () => {
   });
 
   it('should scroll to heading based on URL hash on page load', async () => {
-    // Mock window.location.hash
+    // Mock window.location.hash using Object.defineProperty for safer mocking
     const originalLocation = window.location;
-    delete (window as any).location;
-    (window as any).location = { ...originalLocation, hash: '#section-one' };
-
-    const { container } = render(
-      <MemoryRouter initialEntries={['/docs/quickstart#section-one']}>
-        <Routes>
-          <Route path="/docs/:slug" element={<DocDetail />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    // Wait for headings to be extracted
-    await waitFor(() => {
-      const tocLinks = container.querySelectorAll('nav a[href^="#"]');
-      expect(tocLinks.length).toBeGreaterThan(0);
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { ...originalLocation, hash: '#section-one' },
     });
 
-    // Wait for the 100ms setTimeout in the component's hash scroll effect
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 200));
-    });
+    try {
+      const { container } = render(
+        <MemoryRouter initialEntries={['/docs/quickstart#section-one']}>
+          <Routes>
+            <Route path="/docs/:slug" element={<DocDetail />} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    // Should have called getElementById to find the element
-    expect(document.getElementById).toHaveBeenCalledWith('section-one');
-    
-    (window as any).location = originalLocation;
+      // Wait for headings to be extracted
+      await waitFor(() => {
+        const tocLinks = container.querySelectorAll('nav a[href^="#"]');
+        expect(tocLinks.length).toBeGreaterThan(0);
+      });
+
+      // Wait for the 100ms setTimeout in the component's hash scroll effect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      });
+
+      // Should have called getElementById to find the element
+      expect(document.getElementById).toHaveBeenCalledWith('section-one');
+    } finally {
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: originalLocation,
+      });
+    }
   }, 15000);
 
   it('should handle URL with fragment identifier like #5-verify-service-status', async () => {
     const originalLocation = window.location;
-    delete (window as any).location;
-    (window as any).location = { ...originalLocation, hash: '#5-verify-service-status' };
-
-    const { container } = render(
-      <MemoryRouter initialEntries={['/docs/quickstart#5-verify-service-status']}>
-        <Routes>
-          <Route path="/docs/:slug" element={<DocDetail />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    // Wait for content to load
-    await waitFor(() => {
-      const tocLinks = container.querySelectorAll('nav a[href^="#"]');
-      expect(tocLinks.length).toBeGreaterThan(0);
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { ...originalLocation, hash: '#5-verify-service-status' },
     });
 
-    // Wait for the 100ms setTimeout in the component's hash scroll effect
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 200));
-    });
+    try {
+      const { container } = render(
+        <MemoryRouter initialEntries={['/docs/quickstart#5-verify-service-status']}>
+          <Routes>
+            <Route path="/docs/:slug" element={<DocDetail />} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    // Should attempt to scroll to the section
-    expect(document.getElementById).toHaveBeenCalledWith('5-verify-service-status');
-    
-    (window as any).location = originalLocation;
+      // Wait for content to load
+      await waitFor(() => {
+        const tocLinks = container.querySelectorAll('nav a[href^="#"]');
+        expect(tocLinks.length).toBeGreaterThan(0);
+      });
+
+      // Wait for the 100ms setTimeout in the component's hash scroll effect
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      });
+
+      // Should attempt to scroll to the section
+      expect(document.getElementById).toHaveBeenCalledWith('5-verify-service-status');
+    } finally {
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: originalLocation,
+      });
+    }
   }, 15000);
 });
 

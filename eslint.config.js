@@ -28,6 +28,12 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // React Compiler compatibility rules - set to warn for gradual adoption
+      // These flag valid patterns that would need refactoring for the React Compiler
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/error-boundaries": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
