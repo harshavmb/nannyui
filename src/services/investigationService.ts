@@ -7,8 +7,8 @@ export interface Inference {
   variant_name: string;
   timestamp: string;
   processing_time_ms: number;
-  input?: Record<string, unknown>;
-  output?: Record<string, unknown>;
+  input?: unknown;
+  output?: unknown;
   usage?: {
     input_tokens: number;
     output_tokens: number;

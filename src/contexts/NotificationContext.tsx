@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { pb } from '@/lib/pocketbase';
+import { pb } from '@/integrations/pocketbase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PatchOperationRecord, RebootOperationRecord } from '@/integrations/pocketbase/types';
 import { Investigation } from '@/services/investigationService';

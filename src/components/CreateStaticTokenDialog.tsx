@@ -78,9 +78,17 @@ const CreateStaticTokenDialog: React.FC<CreateStaticTokenDialogProps> = ({
 
   const handleCopy = async () => {
     if (!createdToken) return;
-    await navigator.clipboard.writeText(createdToken);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(createdToken);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: 'Copy failed',
+        description: 'Could not copy to clipboard. Please select and copy the token manually.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -160,7 +168,14 @@ const CreateStaticTokenDialog: React.FC<CreateStaticTokenDialogProps> = ({
               <Label htmlFor="token-expiry">Expiration</Label>
               <Select
                 value={String(expiresInDays)}
-                onValueChange={(v) => setExpiresInDays(Number(v) as ExpiryDays)}
+                onValueChange={(v) => {
+                  const nextValue = Number(v);
+                  const matchedOption = EXPIRY_OPTIONS.find((opt) => opt.value === nextValue);
+                  if (matchedOption) {
+                    setError(null);
+                    setExpiresInDays(matchedOption.value);
+                  }
+                }}
               >
                 <SelectTrigger id="token-expiry" data-testid="token-expiry-select">
                   <SelectValue placeholder="Select expiration" />
