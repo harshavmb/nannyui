@@ -123,9 +123,13 @@ describe('RebootScheduleDialog', () => {
     
     render(<RebootScheduleDialog {...defaultProps} />);
     
-    // Wait for form to load
-    const saveButton = await screen.findByRole('button', { name: /save schedule/i });
-    fireEvent.click(saveButton);
+    // Wait for loading to finish and button to be enabled
+    await waitFor(() => {
+      const btn = screen.getByRole('button', { name: /save schedule/i });
+      expect(btn).not.toBeDisabled();
+    });
+    
+    fireEvent.click(screen.getByRole('button', { name: /save schedule/i }));
     
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({
@@ -140,9 +144,13 @@ describe('RebootScheduleDialog', () => {
     
     render(<RebootScheduleDialog {...defaultProps} />);
     
-    // Wait for form to load
-    const saveButton = await screen.findByRole('button', { name: /save schedule/i });
-    fireEvent.click(saveButton);
+    // Wait for loading to finish and button to be enabled
+    await waitFor(() => {
+      const btn = screen.getByRole('button', { name: /save schedule/i });
+      expect(btn).not.toBeDisabled();
+    });
+    
+    fireEvent.click(screen.getByRole('button', { name: /save schedule/i }));
     
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({

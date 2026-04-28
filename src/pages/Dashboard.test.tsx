@@ -7,10 +7,9 @@ import * as errorHandling from '@/utils/errorHandling';
 import * as config from '@/utils/config';
 import * as authUtils from '@/utils/authUtils';
 import * as authService from '@/services/authService';
-import * as activityService from '@/services/activityService';
 import * as investigationService from '@/services/investigationService';
 import * as statsService from '@/services/statsService';
-import { placeholderStats, placeholderActivities } from '@/mocks/placeholderData';
+import { placeholderStats } from '@/mocks/placeholderData';
 
 // Mock the modules
 vi.mock('@/components/Navbar', () => ({
@@ -76,12 +75,6 @@ vi.mock('@/services/authService', () => ({
   getCurrentSession: vi.fn()
 }));
 
-vi.mock('@/services/activityService', () => ({
-  getRecentActivities: vi.fn(),
-  getActivityIcon: vi.fn(),
-  formatActivityTime: vi.fn()
-}));
-
 vi.mock('@/services/investigationService', () => ({
   getRecentInvestigationsFromAPI: vi.fn(),
   formatInvestigationTime: vi.fn()
@@ -145,7 +138,6 @@ describe('Dashboard component', () => {
 
     vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser as any);
     vi.mocked(authService.getCurrentSession).mockResolvedValue(mockSession as any);
-    vi.mocked(activityService.getRecentActivities).mockResolvedValue([]);
     vi.mocked(investigationService.getRecentInvestigationsFromAPI).mockResolvedValue([]);
     vi.mocked(statsService.getDashboardStats).mockResolvedValue(mockStats);
 
@@ -163,7 +155,6 @@ describe('Dashboard component', () => {
 
     // Verify that dashboard data services were called
     await waitFor(() => {
-      expect(activityService.getRecentActivities).toHaveBeenCalled();
       expect(investigationService.getRecentInvestigationsFromAPI).toHaveBeenCalled();
       expect(statsService.getDashboardStats).toHaveBeenCalled();
     });

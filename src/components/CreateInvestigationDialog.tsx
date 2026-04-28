@@ -138,14 +138,14 @@ const CreateInvestigationDialog: React.FC<CreateInvestigationDialogProps> = ({
       } else {
         throw new Error('No investigation_id returned from API');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating investigation:', err);
       hasSubmittedRef.current = false;
       setStatus('error');
       setProgress(0);
       
       // Handle specific error types
-      const errorMsg = err?.message || 'Failed to create investigation';
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create investigation';
       if (errorMsg.includes('websocket') || errorMsg.includes('WebSocket') || errorMsg.includes('not connected')) {
         setError('Agent is not connected via WebSocket. Please ensure the agent is online and connected, then try again.');
       } else if (errorMsg.includes('timeout')) {

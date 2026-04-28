@@ -1,4 +1,5 @@
 import { pb } from '@/lib/pocketbase';
+import type { RecordModel } from 'pocketbase';
 
 export interface Inference {
   id: string;
@@ -6,8 +7,8 @@ export interface Inference {
   variant_name: string;
   timestamp: string;
   processing_time_ms: number;
-  input?: any;
-  output?: any;
+  input?: unknown;
+  output?: unknown;
   usage?: {
     input_tokens: number;
     output_tokens: number;
@@ -30,7 +31,7 @@ export interface Investigation {
   updated_at: string;
   metadata: {
     inferences?: Inference[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
   inference_count?: number;
   agent?: {
@@ -74,7 +75,7 @@ export const getInvestigationsPaginated = async (
       expand: 'agent_id',
     });
 
-    const investigations = result.items.map((record: any) => {
+    const investigations = result.items.map((record: RecordModel) => {
       let agent = undefined;
       if (record.expand?.agent_id) {
         const agentRecord = record.expand.agent_id;
@@ -330,7 +331,7 @@ export const getEpisodeInferences = async (episodeId: string): Promise<Inference
       sort: 'created',
     });
 
-    return result.items.map((record: any) => ({
+    return result.items.map((record: RecordModel) => ({
       id: record.id,
       function_name: record.function_name,
       variant_name: record.variant_name,
@@ -437,7 +438,7 @@ export const getRecentInvestigationsForAgent = async (agentId: string, limit: nu
       sort: '-completed_at',
     });
 
-    return result.items.map((record: any) => ({
+    return result.items.map((record: RecordModel) => ({
       ...record,
       created_at: record.created,
       updated_at: record.updated,

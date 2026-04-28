@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { pb } from '@/lib/pocketbase';
+import { pb } from '@/integrations/pocketbase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PatchOperationRecord, RebootOperationRecord } from '@/integrations/pocketbase/types';
 import { Investigation } from '@/services/investigationService';
@@ -33,7 +33,16 @@ export const useNotifications = () => {
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(pb.authStore.isValid);
   const { toast } = useToast();
+
+  // Track auth state changes so subscriptions start/stop with login/logout
+  useEffect(() => {
+    const removeListener = pb.authStore.onChange(() => {
+      setIsAuthenticated(pb.authStore.isValid);
+    });
+    return () => removeListener();
+  }, []);
 
   const addNotification = useCallback((notification: Notification) => {
     setNotifications(prev => [notification, ...prev]);
@@ -57,6 +66,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   useEffect(() => {
+    // Only subscribe when the user is authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
     // Subscribe to patch_operations
     const subscribeToPatchOperations = async () => {
       try {
@@ -160,7 +174,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       pb.collection('investigations').unsubscribe('*');
       pb.collection('reboot_operations').unsubscribe('*');
     };
-  }, [addNotification]);
+  }, [addNotification, isAuthenticated]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

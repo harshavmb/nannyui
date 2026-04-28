@@ -38,11 +38,11 @@ export const signUpWithEmail = async (
       token: authData.token,
       error: null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       user: null,
       token: null,
-      error: error.message || 'Failed to sign up',
+      error: error instanceof Error ? error.message : 'Failed to sign up',
     };
   }
 };
@@ -75,7 +75,7 @@ export const signInWithEmail = async (
         const data = await response.json();
         const factors = data.totp || [];
         // MFA is required if user has verified TOTP factors
-        mfaRequired = factors.length > 0 && factors.some((f: any) => f.status === 'verified');
+        mfaRequired = factors.length > 0 && factors.some((f: Record<string, unknown>) => f.status === 'verified');
       } else {
         // Fail closed: if we can't confirm MFA factors status, assume MFA might be required
         // This prevents bypassing MFA by causing the factors check to fail
@@ -92,11 +92,11 @@ export const signInWithEmail = async (
       error: null,
       mfaRequired,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       user: null,
       token: null,
-      error: error.message || 'Failed to sign in',
+      error: error instanceof Error ? error.message : 'Failed to sign in',
       mfaRequired: false,
     };
   }
@@ -122,8 +122,8 @@ export const signInWithGitHub = async () => {
       }, 
       error: null 
     };
-  } catch (error: any) {
-    return { data: null, error: error.message || 'Failed to sign in with GitHub' };
+  } catch (error: unknown) {
+    return { data: null, error: error instanceof Error ? error.message : 'Failed to sign in with GitHub' };
   }
 };
 
@@ -146,8 +146,8 @@ export const signInWithGoogle = async () => {
       }, 
       error: null 
     };
-  } catch (error: any) {
-    return { data: null, error: error.message || 'Failed to sign in with Google' };
+  } catch (error: unknown) {
+    return { data: null, error: error instanceof Error ? error.message : 'Failed to sign in with Google' };
   }
 };
 
@@ -158,8 +158,8 @@ export const signOut = async () => {
   try {
     pb.authStore.clear();
     return { error: null };
-  } catch (error: any) {
-    return { error: error.message || 'Failed to sign out' };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Failed to sign out' };
   }
 };
 
@@ -174,7 +174,7 @@ export const getUserAuthProviders = async (): Promise<string[]> => {
     
     // PocketBase SDK: listExternalAuths returns linked OAuth providers
     const externalAuths = await pb.collection('users').listExternalAuths(user.id);
-    return externalAuths.map((auth: any) => auth.provider);
+    return externalAuths.map((auth) => auth.provider);
   } catch (error) {
     console.error('Error fetching user auth providers:', error);
     return [];
@@ -245,8 +245,8 @@ export const resetPassword = async (email: string) => {
     // Placeholder for password reset functionality
     console.log('Reset password for:', email);
     return { data: null, error: null };
-  } catch (error: any) {
-    return { data: null, error: error.message };
+  } catch (error: unknown) {
+    return { data: null, error: error instanceof Error ? error.message : 'Failed to reset password' };
   }
 };
 
@@ -266,8 +266,8 @@ export const updatePassword = async (newPassword: string) => {
     });
 
     return { data: updatedUser, error: null };
-  } catch (error: any) {
-    return { data: null, error: { message: error.message || 'Failed to update password' } };
+  } catch (error: unknown) {
+    return { data: null, error: { message: error instanceof Error ? error.message : 'Failed to update password' } };
   }
 };
 

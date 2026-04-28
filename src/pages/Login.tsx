@@ -53,7 +53,7 @@ const Login = () => {
         // Successfully authenticated, redirect to dashboard
         navigate('/dashboard', { replace: true });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error initiating GitHub login:", error);
       setIsError(true);
       toast({
@@ -82,7 +82,7 @@ const Login = () => {
         // Successfully authenticated, redirect to dashboard
         navigate('/dashboard', { replace: true });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error initiating Google login:", error);
       setIsError(true);
       toast({

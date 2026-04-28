@@ -264,7 +264,7 @@ export const createAgent = async (
   try {
     const user = pb.authStore.record;
     // Remove status from payload as it's computed
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { status: _, ...agentData } = agent;
     
     const record = await pb.collection('agents').create({
@@ -295,7 +295,7 @@ export const updateAgent = async (
 ): Promise<{ data: Agent | null; error: Error | null }> => {
   try {
     // Remove status from updates as it's computed
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { status: _, ...updateData } = updates;
     
     const record = await pb.collection('agents').update(id, updateData);

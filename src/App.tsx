@@ -12,8 +12,8 @@ import MFAVerification from "./pages/MFAVerification";
 import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import Agents from "./pages/Agents";
-import Activities from "./pages/Activities";
 import Investigations from "./pages/Investigations";
+import StaticTokens from "./pages/StaticTokens";
 import InvestigationEpisode from "./pages/InvestigationEpisode";
 import InferenceDetail from "./pages/InferenceDetail";
 import AgentRegistration from "./pages/AgentRegistration";
@@ -83,7 +83,7 @@ const App = () => (
                 <Route path="/patch-execution/:executionId" element={<PatchExecutionDetail />} />
                 <Route path="/reboot-history" element={<RebootHistory />} />
                 <Route path="/reboot-history/:agentId" element={<RebootHistory />} />
-                <Route path="/activities" element={<Activities />} />
+                <Route path="/static-tokens" element={<StaticTokens />} />
                 <Route path="/investigations" element={<Investigations />} />
                 <Route path="/investigations/:investigationId" element={<InvestigationEpisode />} />
                 <Route path="/investigations/:investigationId/inference/:inferenceId" element={<InferenceDetail />} />

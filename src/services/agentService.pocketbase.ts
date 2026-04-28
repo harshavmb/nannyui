@@ -206,7 +206,7 @@ export const getAgentsPaginated = async (
 
     // For each agent, try to get their latest metric
     const agentsWithMetrics = await Promise.all(
-      records.items.map(async (agent: any) => {
+      records.items.map(async (agent) => {
         try {
           const metrics = await pb.collection('agent_metrics').getList(1, 1, {
             filter: `agent_id = "${agent.id}"`,
@@ -221,7 +221,7 @@ export const getAgentsPaginated = async (
             updated_at: agent.updated,
             lastMetric,
             metrics: lastMetric ? [lastMetric] : undefined,
-          } as AgentWithRelations;
+          } as unknown as AgentWithRelations;
         } catch {
           return {
             ...agent,
@@ -229,7 +229,7 @@ export const getAgentsPaginated = async (
             updated_at: agent.updated,
             lastMetric: undefined,
             metrics: undefined,
-          } as AgentWithRelations;
+          } as unknown as AgentWithRelations;
         }
       })
     );
@@ -271,7 +271,7 @@ export const getAgents = async (): Promise<Agent[]> => {
       sort: '-last_seen',
     });
 
-    return records.map((agent: any) => ({
+    return records.map((agent) => ({
       id: agent.id,
       name: agent.name,
       fingerprint: agent.fingerprint,
@@ -306,7 +306,7 @@ export const getUserAgents = async (userId: string): Promise<Agent[]> => {
       sort: '-last_seen',
     });
 
-    return records.map((agent: any) => ({
+    return records.map((agent) => ({
       id: agent.id,
       name: agent.name,
       fingerprint: agent.fingerprint,
@@ -339,7 +339,7 @@ export const getAgentsByStatus = async (status: 'online' | 'offline'): Promise<A
       sort: '-last_seen',
     });
 
-    return records.map((agent: any) => ({
+    return records.map((agent) => ({
       id: agent.id,
       name: agent.name,
       status: agent.status,

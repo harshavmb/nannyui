@@ -1,14 +1,18 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { NotificationProvider, useNotifications } from './NotificationContext';
-import { pb } from '@/lib/pocketbase';
+import { pb } from '@/integrations/pocketbase/client';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock pocketbase
-vi.mock('@/lib/pocketbase', () => ({
+vi.mock('@/integrations/pocketbase/client', () => ({
   pb: {
     collection: vi.fn(),
+    authStore: {
+      isValid: true,
+      onChange: vi.fn(() => () => {}),
+    },
   },
 }));
 

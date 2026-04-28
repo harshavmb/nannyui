@@ -18,7 +18,7 @@ export interface PricingPlan {
   advanced_security: boolean;
   priority_support: boolean;
   custom_agents: boolean;
-  features: Record<string, any>;
+  features: Record<string, unknown>;
   created_at: string;
 }
 
@@ -31,7 +31,7 @@ export const getPricingPlans = async (): Promise<PricingPlan[]> => {
       sort: 'monthly_price_cents',
     });
 
-    return records.map((record: any) => ({
+    return records.map((record) => ({
       ...record,
       created_at: record.created,
     })) as unknown as PricingPlan[];

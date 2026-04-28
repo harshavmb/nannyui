@@ -1,5 +1,3 @@
-import { Activity } from '@/services/activityService'
-
 // Mock Agent data
 export const mockAgent = {
   id: "1",
@@ -57,26 +55,6 @@ export const mockPatch = {
   updated_at: '2023-12-12T10:00:00Z'
 }
 
-// Mock Activity data
-export const mockActivity: Activity = {
-  id: 'activity-1',
-  user_id: 'user-1',
-  agent_id: 'agent-1',
-  activity_type: 'agent_registration',
-  summary: 'Agent registered successfully',
-  metadata: {
-    status: 'success',
-    ip_address: '192.168.1.100',
-    user_agent: 'NannyAgent/1.0.0',
-    device_type: 'server',
-    duration_ms: 150
-  },
-  created_at: '2023-12-12T10:00:00Z',
-  title: 'Agent Registration',
-  description: 'Agent registered successfully',
-  icon: 'CheckCircle'
-}
-
 // Mock Dashboard stats
 export const mockDashboardStats = {
   total_agents: 5,
@@ -123,7 +101,6 @@ export const mockApiResponses = {
   agents: [mockAgent],
   investigations: [mockInvestigation],
   patches: [mockPatch],
-  activities: [mockActivity],
   stats: mockDashboardStats,
   pricingTiers: mockPricingTiers
 }
