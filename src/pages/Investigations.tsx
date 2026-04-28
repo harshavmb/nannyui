@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, Database, Server, Smartphone, Network, Globe, Activity as ActivityIcon, ChevronLeft, ChevronRight, Loader2, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Eye } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -43,9 +43,9 @@ const Investigations = () => {
       };
       
       setInvestigationsData(filteredData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching investigations:', error);
-      const errorMsg = error?.message === 'Request timeout' 
+      const errorMsg = error instanceof Error && error.message === 'Request timeout' 
         ? 'Request timed out. The server may be slow or unavailable.'
         : 'Failed to load investigations. Please check your connection and try again.';
       setErrorMessage(errorMsg);

@@ -135,9 +135,9 @@ const Navbar: React.FC = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/activities" className="cursor-pointer">
+                <Link to="/static-tokens" className="cursor-pointer">
                   <Bell className="h-4 w-4 mr-2" />
-                  Activities
+                  Static Tokens
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

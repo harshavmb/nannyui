@@ -56,7 +56,7 @@ export const updateAgent = async (
   updates: { name?: string; status?: string }
 ): Promise<AgentDeleteResponse> => {
   try {
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     if (updates.name) updateData.hostname = updates.name;
     if (updates.status) updateData.status = updates.status;
 
@@ -66,10 +66,10 @@ export const updateAgent = async (
       success: true,
       message: 'Agent updated successfully',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       message: 'Failed to update agent'
     };
   }

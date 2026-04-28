@@ -404,8 +404,6 @@ function InferenceDetail() {
   };
 
   const renderEbpfProgram = (program: any) => {
-    const hasError = program.error || program.verified === false || (program.exit_code && program.exit_code !== 0);
-    
     return (
       <div className="border rounded-lg overflow-hidden bg-slate-950 border-indigo-500/40">
         <div className="px-4 py-3 border-b border-indigo-500/30 bg-indigo-950/20">

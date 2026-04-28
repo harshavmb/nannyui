@@ -135,7 +135,7 @@ export interface PatchOperationRecord {
   error_msg: string;
   started_at?: string;
   completed_at?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created: string;
   updated: string;
 }

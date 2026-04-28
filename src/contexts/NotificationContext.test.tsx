@@ -9,6 +9,10 @@ import { BrowserRouter } from 'react-router-dom';
 vi.mock('@/lib/pocketbase', () => ({
   pb: {
     collection: vi.fn(),
+    authStore: {
+      isValid: true,
+      onChange: vi.fn(() => () => {}),
+    },
   },
 }));
 

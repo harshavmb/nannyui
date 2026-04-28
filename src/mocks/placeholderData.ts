@@ -58,10 +58,3 @@ export const placeholderStats = [
   { title: 'Total Users', value: '12', icon: 'Users', change: '+8%' },
   { title: 'Uptime', value: '99.9%', icon: 'Clock', change: '+0.2%' },
 ];
-
-export const placeholderActivities = [
-  { title: 'System initialized', time: 'just now', icon: 'Activity' },
-  { title: 'New agent connected', time: '2 hours ago', icon: 'Server' },
-  { title: 'User logged in', time: '1 day ago', icon: 'Users' },
-  { title: 'System update completed', time: '3 days ago', icon: 'Activity' }
-];

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Server, Users, Clock, ArrowUpRight, Activity, Key } from 'lucide-react';
+import { Server, Users, Clock, Key } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -12,7 +12,6 @@ import ErrorBanner from '@/components/ErrorBanner';
 import withAuth from '@/utils/withAuth';
 import { placeholderStats } from '@/mocks/placeholderData';
 import { getCurrentUser, getCurrentSession } from '@/services/authService';
-import { getRecentActivities, getActivityIcon, formatActivityTime, type Activity as ActivityType } from '@/services/activityService';
 import { getRecentInvestigationsFromAPI, formatInvestigationTime, type Investigation } from '@/services/investigationService';
 import { getDashboardStats } from '@/services/statsService';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +20,6 @@ const Dashboard = () => {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("There was an issue loading your dashboard data.");
   const [stats, setStats] = useState(placeholderStats);
-  const [activities, setActivities] = useState<ActivityType[]>([]);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -54,18 +52,10 @@ const Dashboard = () => {
           };
           
           // Fetch all data in parallel with timeouts
-          const [recentActivities, recentInvestigations, dashboardStats] = await Promise.allSettled([
-            withTimeout(getRecentActivities(5)),
+          const [recentInvestigations, dashboardStats] = await Promise.allSettled([
             withTimeout(getRecentInvestigationsFromAPI(5)),
             withTimeout(getDashboardStats())
           ]);
-          
-          // Handle activities
-          if (recentActivities.status === 'fulfilled' && recentActivities.value && recentActivities.value.length > 0) {
-            setActivities(recentActivities.value);
-          } else {
-            setActivities([]);
-          }
           
           // Handle investigations
           if (recentInvestigations.status === 'fulfilled' && recentInvestigations.value) {
@@ -101,7 +91,7 @@ const Dashboard = () => {
           
         } catch (dataError) {
           console.error('Error fetching dashboard data:', dataError);
-          setErrorMessage("Could not load data from Supabase. Check if the 'activities' table exists.");
+          setErrorMessage("Could not load dashboard data. Please try again later.");
           setHasError(true);
         }
         
@@ -177,9 +167,8 @@ const Dashboard = () => {
                   ))}
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   <motion.div 
-                    className="lg:col-span-2"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
@@ -240,60 +229,6 @@ const Dashboard = () => {
                           </div>
                         )}
                       </div>
-                    </GlassMorphicCard>
-                  </motion.div>
-                  
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                  >
-                    <GlassMorphicCard className="h-full">
-                      <h3 className="font-medium mb-6">Recent Activities</h3>
-                      
-                      {activities.length > 0 ? (
-                        <div className="space-y-4">
-                          {activities.map((activity) => {
-                            const iconName = activity.icon || getActivityIcon(activity.activity_type);
-                            return (
-                              <div key={activity.id} className="flex items-start space-x-3">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                  {iconName === 'Server' && <Server className="h-4 w-4 text-primary" />}
-                                  {iconName === 'Key' && <Key className="h-4 w-4 text-primary" />}
-                                  {iconName === 'Activity' && <Activity className="h-4 w-4 text-primary" />}
-                                  {iconName === 'Users' && <Users className="h-4 w-4 text-primary" />}
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{activity.title}</p>
-                                  {activity.description && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">{activity.description}</p>
-                                  )}
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {formatActivityTime(activity.created_at)}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Activity className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-                          <p className="text-sm text-muted-foreground">No activities yet</p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">
-                            Activities from agents, users, and sessions will appear here
-                          </p>
-                        </div>
-                      )}
-                      
-                      {activities.length > 0 && (
-                        <button 
-                          className="mt-4 text-sm text-primary hover:text-primary/80 flex items-center"
-                          onClick={() => navigate('/activities')}
-                        >
-                          View all activities <ArrowUpRight className="ml-1 h-3 w-3" />
-                        </button>
-                      )}
                     </GlassMorphicCard>
                   </motion.div>
                 </div>
