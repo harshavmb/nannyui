@@ -49,6 +49,7 @@ import { getAgentsPaginated, getAgentDetails, getAgentRealTimeStatus, type Agent
 import { deleteAgent } from '@/services/agentManagementService';
 import AgentDeleteDialog from '@/components/AgentDeleteDialog';
 import CreateInvestigationDialog from '@/components/CreateInvestigationDialog';
+import { UsageLimitBanner } from '@/components/UsageLimitBanner';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser } from '@/services/authService';
 import type { UserRecord } from '@/integrations/pocketbase/types';
@@ -239,6 +240,8 @@ const Agents = () => {
                   onDismiss={() => setHasError(false)}
                 />
               )}
+              
+              <UsageLimitBanner showAgentLimit currentAgentCount={agents.length} />
               
               {/* Header section */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">

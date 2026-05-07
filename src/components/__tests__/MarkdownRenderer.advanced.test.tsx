@@ -49,7 +49,7 @@ describe('MarkdownRenderer Advanced', () => {
       });
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('raw.githubusercontent.com/nannyagent/nannyapi/add-docs/docs/test.md')
+        expect.stringContaining('raw.githubusercontent.com/nannyagent/nannyapi/main/docs/test.md')
       );
     });
 

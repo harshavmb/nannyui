@@ -9,6 +9,8 @@ import Footer from '@/components/Footer';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import ErrorBanner from '@/components/ErrorBanner';
+import { UsageLimitBanner } from '@/components/UsageLimitBanner';
+import { UsageConsumption } from '@/components/UsageConsumption';
 import withAuth from '@/utils/withAuth';
 import { placeholderStats } from '@/mocks/placeholderData';
 import { getCurrentUser, getCurrentSession } from '@/services/authService';
@@ -124,6 +126,8 @@ const Dashboard = () => {
               />
             )}
             
+            <UsageLimitBanner />
+            
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -167,6 +171,11 @@ const Dashboard = () => {
                   ))}
                 </div>
                 
+                {/* Usage & Limits */}
+                <div className="mb-8">
+                  <UsageConsumption />
+                </div>
+
                 <div className="grid grid-cols-1 gap-6">
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}

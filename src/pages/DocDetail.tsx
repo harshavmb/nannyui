@@ -29,8 +29,8 @@ const DocDetail = () => {
   const relatedDocs = categorizedDocs[doc?.category || '']?.filter(d => d.filename !== doc?.filename) || [];
   
   const sourceUrl = doc?.source === 'nannyapi' 
-    ? `https://github.com/nannyagent/nannyapi/blob/add-docs/docs/${doc?.filename}`
-    : `https://github.com/nannyagent/nannyagent/blob/add-docs/docs/${doc?.filename}`;
+    ? `https://github.com/nannyagent/nannyapi/blob/main/docs/${doc?.filename}`
+    : `https://github.com/nannyagent/nannyagent/blob/main/docs/${doc?.filename}`;
 
   const scrollToHeading = React.useCallback((id: string) => {
     const element = document.getElementById(id);

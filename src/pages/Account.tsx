@@ -9,6 +9,7 @@ import ErrorBanner from '@/components/ErrorBanner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { MFASetupDialog } from '@/components/MFASetupDialog';
 import { DisableMFADialog } from '@/components/DisableMFADialog';
+import { SubscriptionSection } from '@/components/SubscriptionSection';
 import withAuth from '@/utils/withAuth';
 import { getCurrentUser, getCurrentSession, isMFAEnabled, getUserAuthProviders } from '@/services/authService';
 import type { UserRecord } from '@/integrations/pocketbase/types';
@@ -458,6 +459,11 @@ export const Account = () => {
                   </div>
                 </GlassMorphicCard>
               </div>
+            </div>
+
+            {/* Subscription, Usage & Billing - Full Width */}
+            <div className="mt-6">
+              <SubscriptionSection />
             </div>
           </div>
         </TransitionWrapper>
