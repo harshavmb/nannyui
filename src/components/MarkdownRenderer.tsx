@@ -119,9 +119,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       try {
         let text = '';
         
-        // Try to fetch from GitHub first (add-docs branch)
+        // Try to fetch from GitHub first (main branch)
         try {
-          const githubUrl = `https://raw.githubusercontent.com/nannyagent/${source}/add-docs/docs/${filename}`;
+          const githubUrl = `https://raw.githubusercontent.com/nannyagent/${source}/main/docs/${filename}`;
           const response = await fetch(githubUrl);
           if (response.ok) {
             text = await response.text();

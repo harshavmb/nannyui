@@ -49,6 +49,7 @@ import { getAgentsPaginated, getAgentDetails, getAgentRealTimeStatus, type Agent
 import { deleteAgent } from '@/services/agentManagementService';
 import AgentDeleteDialog from '@/components/AgentDeleteDialog';
 import CreateInvestigationDialog from '@/components/CreateInvestigationDialog';
+import { UsageLimitBanner } from '@/components/UsageLimitBanner';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser } from '@/services/authService';
 import type { UserRecord } from '@/integrations/pocketbase/types';
@@ -68,6 +69,7 @@ const Agents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalAgents, setTotalAgents] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active');
   
   // Delete dialog state
@@ -103,6 +105,7 @@ const Agents = () => {
       const result = await getAgentsPaginated(currentPage, pageSize);
       setAgents(result.agents);
       setTotalPages(result.totalPages);
+      setTotalAgents(result.total);
       setLastStatusUpdate(Date.now());
       
       if (isManualRefresh) {
@@ -239,6 +242,8 @@ const Agents = () => {
                   onDismiss={() => setHasError(false)}
                 />
               )}
+              
+              <UsageLimitBanner showAgentLimit currentAgentCount={totalAgents} />
               
               {/* Header section */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">

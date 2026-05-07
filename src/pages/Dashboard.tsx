@@ -9,11 +9,14 @@ import Footer from '@/components/Footer';
 import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import ErrorBanner from '@/components/ErrorBanner';
+import { UsageLimitBanner } from '@/components/UsageLimitBanner';
+import { UsageConsumption } from '@/components/UsageConsumption';
 import withAuth from '@/utils/withAuth';
 import { placeholderStats } from '@/mocks/placeholderData';
 import { getCurrentUser, getCurrentSession } from '@/services/authService';
 import { getRecentInvestigationsFromAPI, formatInvestigationTime, type Investigation } from '@/services/investigationService';
 import { getDashboardStats } from '@/services/statsService';
+import { getUserUsage, getPricingTiers, type UsageData, type PricingResponse } from '@/services/pricingService';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -22,6 +25,8 @@ const Dashboard = () => {
   const [stats, setStats] = useState(placeholderStats);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [pricingData, setPricingData] = useState<PricingResponse | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,9 +57,11 @@ const Dashboard = () => {
           };
           
           // Fetch all data in parallel with timeouts
-          const [recentInvestigations, dashboardStats] = await Promise.allSettled([
+          const [recentInvestigations, dashboardStats, usageRes, pricingRes] = await Promise.allSettled([
             withTimeout(getRecentInvestigationsFromAPI(5)),
-            withTimeout(getDashboardStats())
+            withTimeout(getDashboardStats()),
+            withTimeout(getUserUsage()),
+            withTimeout(getPricingTiers()),
           ]);
           
           // Handle investigations
@@ -62,6 +69,16 @@ const Dashboard = () => {
             setInvestigations(recentInvestigations.value);
           } else {
             setInvestigations([]);
+          }
+
+          // Handle usage data
+          if (usageRes.status === 'fulfilled' && usageRes.value.enabled && usageRes.value.usage) {
+            setUsageData(usageRes.value.usage);
+          }
+
+          // Handle pricing data
+          if (pricingRes.status === 'fulfilled') {
+            setPricingData(pricingRes.value);
           }
           
           // Handle stats
@@ -124,6 +141,8 @@ const Dashboard = () => {
               />
             )}
             
+            <UsageLimitBanner usageData={usageData} />
+            
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -167,6 +186,11 @@ const Dashboard = () => {
                   ))}
                 </div>
                 
+                {/* Usage & Limits */}
+                <div className="mb-8">
+                  <UsageConsumption usageData={usageData} pricingResponse={pricingData} />
+                </div>
+
                 <div className="grid grid-cols-1 gap-6">
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
