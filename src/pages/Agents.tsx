@@ -69,6 +69,7 @@ const Agents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalAgents, setTotalAgents] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active');
   
   // Delete dialog state
@@ -104,6 +105,7 @@ const Agents = () => {
       const result = await getAgentsPaginated(currentPage, pageSize);
       setAgents(result.agents);
       setTotalPages(result.totalPages);
+      setTotalAgents(result.total);
       setLastStatusUpdate(Date.now());
       
       if (isManualRefresh) {
@@ -241,7 +243,7 @@ const Agents = () => {
                 />
               )}
               
-              <UsageLimitBanner showAgentLimit currentAgentCount={agents.length} />
+              <UsageLimitBanner showAgentLimit currentAgentCount={totalAgents} />
               
               {/* Header section */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">

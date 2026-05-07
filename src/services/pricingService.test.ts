@@ -28,6 +28,7 @@ vi.mock('@/utils/fetchUtils', () => ({
 }));
 
 // Mock window.location
+const originalLocation = window.location;
 const mockLocation = { origin: 'http://localhost:3000', href: '' };
 Object.defineProperty(window, 'location', {
   value: mockLocation,
@@ -38,6 +39,13 @@ describe('pricingService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocation.href = '';
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+    });
   });
 
   describe('getPricingTiers', () => {
@@ -492,8 +500,9 @@ describe('pricingService', () => {
         expect(getUsagePercentage(5000, -1)).toBe(0);
       });
 
-      it('should return 0 for blocked (0)', () => {
-        expect(getUsagePercentage(0, 0)).toBe(0);
+      it('should return 100 for blocked (0)', () => {
+        expect(getUsagePercentage(0, 0)).toBe(100);
+        expect(getUsagePercentage(50, 0)).toBe(100);
       });
     });
 
@@ -512,6 +521,10 @@ describe('pricingService', () => {
       it('should return false for unlimited', () => {
         expect(isNearLimit(9999999, -1)).toBe(false);
       });
+
+      it('should return false for blocked (0)', () => {
+        expect(isNearLimit(0, 0)).toBe(false);
+      });
     });
 
     describe('isAtLimit', () => {
@@ -526,6 +539,11 @@ describe('pricingService', () => {
 
       it('should return false for unlimited', () => {
         expect(isAtLimit(9999999, -1)).toBe(false);
+      });
+
+      it('should return true for blocked (0)', () => {
+        expect(isAtLimit(0, 0)).toBe(true);
+        expect(isAtLimit(50, 0)).toBe(true);
       });
     });
 

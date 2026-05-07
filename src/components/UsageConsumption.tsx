@@ -36,6 +36,20 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number; resetAt?:
     );
   }
 
+  if (limit === 0) {
+    return (
+      <div className="space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="font-medium text-red-500">Blocked</span>
+        </div>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-red-500 rounded-full" style={{ width: '100%' }} />
+        </div>
+      </div>
+    );
+  }
+
   const percentage = getUsagePercentage(used, limit);
   const nearLimit = isNearLimit(used, limit);
   const atLimit = isAtLimit(used, limit);
@@ -64,14 +78,26 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number; resetAt?:
   );
 };
 
-export const UsageConsumption: React.FC = () => {
-  const [usage, setUsage] = useState<UsageData | null>(null);
-  const [pricingData, setPricingData] = useState<PricingResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+interface UsageConsumptionProps {
+  /** Pre-fetched usage data (avoids duplicate API call) */
+  usageData?: UsageData | null;
+  /** Pre-fetched pricing data (avoids duplicate API call) */
+  pricingResponse?: PricingResponse | null;
+}
+
+export const UsageConsumption: React.FC<UsageConsumptionProps> = ({
+  usageData,
+  pricingResponse,
+}) => {
+  const [fetchedUsage, setFetchedUsage] = useState<UsageData | null>(null);
+  const [fetchedPricing, setFetchedPricing] = useState<PricingResponse | null>(null);
+  const [loading, setLoading] = useState(usageData === undefined);
   const [showBuyCredits, setShowBuyCredits] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Skip fetch if data is provided via props
+    if (usageData !== undefined) return;
     if (!isAuthenticated()) return;
 
     const loadData = async () => {
@@ -81,13 +107,16 @@ export const UsageConsumption: React.FC = () => {
       ]);
 
       if (usageRes.enabled && usageRes.usage) {
-        setUsage(usageRes.usage);
+        setFetchedUsage(usageRes.usage);
       }
-      setPricingData(pricingRes);
+      setFetchedPricing(pricingRes);
       setLoading(false);
     };
     loadData();
-  }, []);
+  }, [usageData]);
+
+  const usage = usageData !== undefined ? usageData : fetchedUsage;
+  const pricingData = pricingResponse !== undefined ? pricingResponse : fetchedPricing;
 
   if (loading) {
     return (

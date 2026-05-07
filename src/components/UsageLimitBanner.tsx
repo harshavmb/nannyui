@@ -15,27 +15,34 @@ interface UsageLimitBannerProps {
   showAgentLimit?: boolean;
   /** Current number of agents the user has */
   currentAgentCount?: number;
+  /** Pre-fetched usage data (avoids duplicate API call when parent already fetches) */
+  usageData?: UsageData | null;
 }
 
 export const UsageLimitBanner: React.FC<UsageLimitBannerProps> = ({
   showAgentLimit = false,
   currentAgentCount = 0,
+  usageData,
 }) => {
-  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [fetchedUsage, setFetchedUsage] = useState<UsageData | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Skip fetch if data is provided via props
+    if (usageData !== undefined) return;
     if (!isAuthenticated()) return;
 
     const loadUsage = async () => {
       const res = await getUserUsage();
       if (res.enabled && res.usage) {
-        setUsage(res.usage);
+        setFetchedUsage(res.usage);
       }
     };
     loadUsage();
-  }, []);
+  }, [usageData]);
+
+  const usage = usageData !== undefined ? usageData : fetchedUsage;
 
   if (dismissed || !usage) return null;
 
@@ -45,9 +52,14 @@ export const UsageLimitBanner: React.FC<UsageLimitBannerProps> = ({
   const agentLimitReached = showAgentLimit && usage.max_agents > 0 && currentAgentCount >= usage.max_agents;
 
   // Token warnings
-  const dailyTokenAtLimit = usage.daily_token_limit > 0 && isAtLimit(usage.daily_tokens_used, usage.daily_token_limit);
-  const monthlyTokenAtLimit = usage.monthly_token_limit > 0 && isAtLimit(usage.monthly_tokens_used, usage.monthly_token_limit);
-  const monthlyTokenNearLimit = usage.monthly_token_limit > 0 && isNearLimit(usage.monthly_tokens_used, usage.monthly_token_limit);
+  const dailyTokenBlocked = usage.daily_token_limit === 0;
+  const monthlyTokenBlocked = usage.monthly_token_limit === 0;
+  const dailyTokenAtLimit =
+    dailyTokenBlocked || (usage.daily_token_limit > 0 && isAtLimit(usage.daily_tokens_used, usage.daily_token_limit));
+  const monthlyTokenAtLimit =
+    monthlyTokenBlocked || (usage.monthly_token_limit > 0 && isAtLimit(usage.monthly_tokens_used, usage.monthly_token_limit));
+  const monthlyTokenNearLimit =
+    !monthlyTokenBlocked && usage.monthly_token_limit > 0 && isNearLimit(usage.monthly_tokens_used, usage.monthly_token_limit);
 
   // Free tier: show upgrade prompt when at agent limit
   if (!isPro && agentLimitReached) {

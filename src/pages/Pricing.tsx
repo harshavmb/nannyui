@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Server, Crown, Zap, RefreshCw, CreditCard, ArrowRight } from 'lucide-react';
+import { Check, X, Server, Crown, RefreshCw, CreditCard, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
@@ -62,6 +62,7 @@ const Pricing = () => {
 
   const getTierFeatures = (tier: PricingTier): { name: string; included: boolean }[] => {
     const isUnlimited = (val: number) => val === -1;
+    const isBlocked = (val: number) => val === 0;
     const isFree = tier.name === 'free';
 
     return [
@@ -70,19 +71,25 @@ const Pricing = () => {
         included: true,
       },
       {
-        name: isUnlimited(tier.daily_token_limit)
+        name: isBlocked(tier.daily_token_limit)
+          ? 'Daily tokens: Blocked'
+          : isUnlimited(tier.daily_token_limit)
           ? 'Unlimited daily tokens'
           : `${formatTokenCount(tier.daily_token_limit)} tokens / day`,
-        included: true,
+        included: !isBlocked(tier.daily_token_limit),
       },
       {
-        name: isUnlimited(tier.monthly_token_limit)
+        name: isBlocked(tier.monthly_token_limit)
+          ? 'Monthly tokens: Blocked'
+          : isUnlimited(tier.monthly_token_limit)
           ? 'Unlimited monthly tokens'
           : `${formatTokenCount(tier.monthly_token_limit)} tokens / month`,
-        included: true,
+        included: !isBlocked(tier.monthly_token_limit),
       },
       {
-        name: isUnlimited(tier.daily_investigation_limit)
+        name: isBlocked(tier.daily_investigation_limit)
+          ? 'Daily investigations: Blocked'
+          : isUnlimited(tier.daily_investigation_limit)
           ? 'Unlimited daily investigations'
           : `${tier.daily_investigation_limit} investigations / day`,
         included: true,
@@ -315,7 +322,7 @@ const Pricing = () => {
                           <td className="py-3 px-4 text-muted-foreground">Daily Tokens</td>
                           {pricingData.tiers?.map((tier) => (
                             <td key={tier.name} className="text-center py-3 px-4 font-medium">
-                              {tier.daily_token_limit === -1 ? 'Unlimited' : formatTokenCount(tier.daily_token_limit)}
+                              {tier.daily_token_limit === -1 ? 'Unlimited' : tier.daily_token_limit === 0 ? 'Blocked' : formatTokenCount(tier.daily_token_limit)}
                             </td>
                           ))}
                         </tr>
@@ -323,7 +330,7 @@ const Pricing = () => {
                           <td className="py-3 px-4 text-muted-foreground">Monthly Tokens</td>
                           {pricingData.tiers?.map((tier) => (
                             <td key={tier.name} className="text-center py-3 px-4 font-medium">
-                              {tier.monthly_token_limit === -1 ? 'Unlimited' : formatTokenCount(tier.monthly_token_limit)}
+                              {tier.monthly_token_limit === -1 ? 'Unlimited' : tier.monthly_token_limit === 0 ? 'Blocked' : formatTokenCount(tier.monthly_token_limit)}
                             </td>
                           ))}
                         </tr>

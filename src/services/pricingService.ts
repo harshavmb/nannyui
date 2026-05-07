@@ -353,7 +353,8 @@ export const formatLimit = (limit: number): string => {
  * Calculate usage percentage (0-100)
  */
 export const getUsagePercentage = (used: number, limit: number): number => {
-  if (limit <= 0) return 0; // unlimited or blocked
+  if (limit === -1) return 0; // unlimited
+  if (limit === 0) return 100; // blocked — always at limit
   return Math.min(100, Math.round((used / limit) * 100));
 };
 
@@ -361,7 +362,8 @@ export const getUsagePercentage = (used: number, limit: number): number => {
  * Check if user is approaching their limit (>90%)
  */
 export const isNearLimit = (used: number, limit: number): boolean => {
-  if (limit <= 0) return false; // unlimited
+  if (limit === -1) return false; // unlimited
+  if (limit === 0) return false; // blocked — already at limit, not "near"
   return (used / limit) >= 0.9;
 };
 
@@ -369,7 +371,8 @@ export const isNearLimit = (used: number, limit: number): boolean => {
  * Check if user has reached their limit
  */
 export const isAtLimit = (used: number, limit: number): boolean => {
-  if (limit <= 0) return false; // unlimited
+  if (limit === -1) return false; // unlimited
+  if (limit === 0) return true; // blocked — always at limit
   return used >= limit;
 };
 
