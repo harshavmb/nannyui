@@ -13,6 +13,7 @@ import {
   subscribeToPro,
   formatLimit,
   formatTokenCount,
+  getCurrencySymbol,
   getUsagePercentage,
   isNearLimit,
   isAtLimit,
@@ -42,6 +43,20 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number; resetAt?:
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div className="h-full bg-green-500 rounded-full" style={{ width: '5%' }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (limit === 0) {
+    return (
+      <div className="space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="font-medium text-red-500">Blocked</span>
+        </div>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-red-500 rounded-full" style={{ width: '100%' }} />
         </div>
       </div>
     );
@@ -388,7 +403,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({ userTi
                       onClick={() => setShowBuyCredits(true)}
                       className="mt-2 text-xs font-medium text-yellow-800 dark:text-yellow-300 underline hover:no-underline"
                     >
-                      Buy Credits ({pricingData.currency === 'eur' ? '€' : '$'}{pricingData.credit_bundle_price} per {formatTokenCount(pricingData.credit_bundle_tokens)} tokens)
+                      Buy Credits ({getCurrencySymbol(pricingData.currency || 'eur')}{pricingData.credit_bundle_price} per {formatTokenCount(pricingData.credit_bundle_tokens)} tokens)
                     </button>
                   </div>
                 </div>

@@ -16,7 +16,8 @@ vi.mock('@/services/pricingService', () => ({
   subscribeToPro: vi.fn(),
   formatLimit: vi.fn((v: number) => v === -1 ? 'Unlimited' : v === 0 ? 'Blocked' : v.toLocaleString()),
   formatTokenCount: vi.fn((v: number) => v.toLocaleString()),
-  getUsagePercentage: vi.fn((used: number, limit: number) => limit <= 0 ? 0 : Math.min(100, (used / limit) * 100)),
+  getCurrencySymbol: vi.fn((c: string) => c === 'eur' ? '€' : c === 'usd' ? '$' : c.toUpperCase() + ' '),
+  getUsagePercentage: vi.fn((used: number, limit: number) => limit === -1 ? 0 : limit === 0 ? 100 : Math.min(100, (used / limit) * 100)),
   isNearLimit: vi.fn(() => false),
   isAtLimit: vi.fn(() => false),
 }));

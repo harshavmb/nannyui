@@ -14,6 +14,7 @@ import {
   isNearLimit,
   isAtLimit,
   formatTokenCount,
+  getCurrencySymbol,
 } from './pricingService';
 
 // Mock dependencies
@@ -563,6 +564,30 @@ describe('pricingService', () => {
       it('should format small numbers with locale string', () => {
         expect(formatTokenCount(500)).toBe('500');
         expect(formatTokenCount(0)).toBe('0');
+      });
+    });
+
+    describe('getCurrencySymbol', () => {
+      it('should return € for eur', () => {
+        expect(getCurrencySymbol('eur')).toBe('€');
+        expect(getCurrencySymbol('EUR')).toBe('€');
+      });
+
+      it('should return $ for usd', () => {
+        expect(getCurrencySymbol('usd')).toBe('$');
+      });
+
+      it('should return £ for gbp', () => {
+        expect(getCurrencySymbol('gbp')).toBe('£');
+      });
+
+      it('should return ¥ for jpy', () => {
+        expect(getCurrencySymbol('jpy')).toBe('¥');
+      });
+
+      it('should return uppercase code for unknown currencies', () => {
+        expect(getCurrencySymbol('sek')).toBe('SEK ');
+        expect(getCurrencySymbol('inr')).toBe('INR ');
       });
     });
   });

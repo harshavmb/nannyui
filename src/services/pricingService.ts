@@ -390,3 +390,17 @@ export const formatTokenCount = (count: number): string => {
   }
   return count.toLocaleString();
 };
+
+/**
+ * Get the display symbol for a currency code
+ */
+export const getCurrencySymbol = (currency: string): string => {
+  switch (currency.toLowerCase()) {
+    case 'eur': return '€';
+    case 'usd': return '$';
+    case 'gbp': return '£';
+    case 'jpy': return '¥';
+    case 'chf': return 'CHF ';
+    default: return currency.toUpperCase() + ' ';
+  }
+};

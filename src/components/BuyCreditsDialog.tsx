@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { buyCredits, formatTokenCount } from '@/services/pricingService';
+import { buyCredits, formatTokenCount, getCurrencySymbol } from '@/services/pricingService';
 import { useToast } from '@/hooks/use-toast';
 
 interface BuyCreditsDialogProps {
@@ -30,7 +30,7 @@ export const BuyCreditsDialog: React.FC<BuyCreditsDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const currencySymbol = currency === 'eur' ? '€' : currency === 'usd' ? '$' : currency.toUpperCase() + ' ';
+  const currencySymbol = getCurrencySymbol(currency);
   const totalPrice = quantity * bundlePrice;
   const totalTokens = quantity * bundleTokens;
 
