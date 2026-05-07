@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - prod
 
 jobs:
   build:
@@ -24,14 +25,3 @@ jobs:
 
       - name: Build application
         run: npm run build
-
-    ## TO BE ADDED LATER TO-DO
-    #   - name: Deploy to Cloudflare Pages
-    #     uses: cloudflare/pages-action@1
-    #     with:
-    #       apiToken: ${{ secrets.CF_API_TOKEN }}
-    #       accountId: ${{ secrets.CF_ACCOUNT_ID }}
-    #       projectName: nannyui
-    #       directory: dist
-    #       branch: main
-    #       gitHubToken: ${{ secrets.GITHUB_TOKEN }}
