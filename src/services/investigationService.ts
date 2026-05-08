@@ -54,13 +54,17 @@ export interface InvestigationsResponse {
   };
 }
 
+export type InvestigationStatusFilter = Investigation['status'] | 'all';
+
+const VALID_STATUSES: readonly string[] = ['pending', 'in_progress', 'completed', 'failed', 'all'];
+
 /**
  * Fetch investigations with pagination
  */
 export const getInvestigationsPaginated = async (
   page: number = 1, 
   limit: number = 5,
-  statusFilter?: string,
+  statusFilter?: InvestigationStatusFilter,
   searchQuery?: string,
 ): Promise<InvestigationsResponse> => {
   try {
@@ -72,13 +76,21 @@ export const getInvestigationsPaginated = async (
       };
     }
 
-    const filters: string[] = [`user_id = "${user.id}"`];
+    const filters: string[] = [pb.filter('user_id = {:userId}', { userId: user.id })];
     if (statusFilter && statusFilter !== 'all') {
-      filters.push(`status = "${statusFilter}"`);
+      if (!VALID_STATUSES.includes(statusFilter)) {
+        throw new Error(`Invalid status filter: ${statusFilter}`);
+      }
+      filters.push(pb.filter('status = {:status}', { status: statusFilter }));
     }
     if (searchQuery) {
       // Search across user_prompt, agent hostname (via relation), and agent_id
-      filters.push(`(user_prompt ~ "${searchQuery}" || agent_id.hostname ~ "${searchQuery}" || agent_id = "${searchQuery}")`);
+      filters.push(
+        pb.filter(
+          'user_prompt ~ {:query} || agent_id.hostname ~ {:query} || agent_id = {:query}',
+          { query: searchQuery }
+        )
+      );
     }
 
     const result = await pb.collection('investigations').getList(page, limit, {
@@ -325,7 +337,7 @@ export const formatInvestigationTime = (createdAt: string): string => {
 export const formatInvestigationDateTime = (dateStr: string): string => {
   if (!dateStr) return 'N/A';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

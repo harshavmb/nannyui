@@ -257,7 +257,7 @@ describe('Account', () => {
     });
   });
 
-  it('displays last sign in date from user.updated field', async () => {
+  it('displays last updated date from user.updated field', async () => {
     (authService.getCurrentUser as any).mockResolvedValue({
       ...mockUser,
       updated: '2024-01-10T09:00:00Z',
@@ -270,8 +270,8 @@ describe('Account', () => {
     );
 
     await waitFor(() => {
-      const lastSignInLabels = screen.getAllByText('Last Sign In');
-      expect(lastSignInLabels.length).toBeGreaterThan(0);
+      const lastUpdatedLabels = screen.getAllByText('Last Updated');
+      expect(lastUpdatedLabels.length).toBeGreaterThan(0);
     });
   });
 });

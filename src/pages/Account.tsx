@@ -193,7 +193,7 @@ export const Account = () => {
                     <div className="flex items-start">
                       <Clock className="h-4 w-4 text-muted-foreground mr-3 mt-0.5" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium">Last Sign In</p>
+                        <p className="text-sm font-medium">Last Updated</p>
                         <p className="text-xs text-muted-foreground">{formatDate(user?.updated)}</p>
                       </div>
                     </div>
@@ -254,7 +254,7 @@ export const Account = () => {
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Last Sign In
+                        Last Updated
                       </label>
                       <p className="text-sm">{formatDate(user?.updated)}</p>
                     </div>
@@ -263,7 +263,7 @@ export const Account = () => {
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                           Phone Verified
                         </label>
-                        <p className="text-sm">Not verified</p>
+                        <p className="text-sm">N/A</p>
                       </div>
                     )}
                     <div className="space-y-1">

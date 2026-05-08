@@ -44,6 +44,13 @@ vi.mock("@/lib/pocketbase", () => ({
         status: "pending",
       }),
     }),
+    filter: vi.fn((template: string, params: Record<string, string>) => {
+      let result = template;
+      for (const [key, value] of Object.entries(params)) {
+        result = result.replaceAll(`{:${key}}`, `"${value}"`);
+      }
+      return result;
+    }),
     files: {
       getUrl: vi.fn().mockReturnValue("http://localhost:8090/api/files/..."),
     },
@@ -238,7 +245,7 @@ describe("investigationService", () => {
     it("should pass search query to API matching prompt and agent", async () => {
       await getInvestigationsPaginated(1, 10, 'all', 'pve2');
       expect(pb.collection("investigations").getList).toHaveBeenCalledWith(1, 10, {
-        filter: 'user_id = "user-123" && (user_prompt ~ "pve2" || agent_id.hostname ~ "pve2" || agent_id = "pve2")',
+        filter: 'user_id = "user-123" && user_prompt ~ "pve2" || agent_id.hostname ~ "pve2" || agent_id = "pve2"',
         sort: "-completed_at",
         expand: "agent_id",
       });

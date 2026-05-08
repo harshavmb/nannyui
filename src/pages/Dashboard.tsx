@@ -17,7 +17,7 @@ import { getCurrentUser, getCurrentSession } from '@/services/authService';
 import { getRecentInvestigationsFromAPI, formatInvestigationDateTime, formatDuration, truncateText, type Investigation } from '@/services/investigationService';
 import { getDashboardStats } from '@/services/statsService';
 import { getUserUsage, getPricingTiers, type UsageData, type PricingResponse } from '@/services/pricingService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const [hasError, setHasError] = useState(false);
@@ -211,10 +211,10 @@ const Dashboard = () => {
                       <div className="space-y-4">
                         {investigations.length > 0 ? (
                           investigations.map((investigation: Investigation) => (
-                            <div 
+                            <Link 
                               key={investigation.id} 
-                              className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                              onClick={() => navigate(`/investigations/${investigation.id}`)}
+                              to={`/investigations/${investigation.id}`}
+                              className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors no-underline text-inherit"
                             >
                               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                 <Server className="h-4 w-4 text-primary" />
@@ -251,7 +251,7 @@ const Dashboard = () => {
                                   {formatInvestigationDateTime(investigation.completed_at || investigation.initiated_at)}
                                 </p>
                               </div>
-                            </div>
+                            </Link>
                           ))
                         ) : (
                           <div className="text-center py-8">

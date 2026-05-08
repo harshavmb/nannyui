@@ -30,13 +30,14 @@ const Investigations = () => {
   const itemsPerPage = 10;
 
   const fetchInvestigations = useCallback(async (page: number) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       setLoading(true);
       setHasError(false);
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 30000)
-      );
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Request timeout')), 30000);
+      });
       
       const statusFilter = showAll ? 'all' : 'completed';
       const dataPromise = getInvestigationsPaginated(page, itemsPerPage, statusFilter, debouncedQuery || undefined);
@@ -57,15 +58,16 @@ const Investigations = () => {
       setErrorMessage(errorMsg);
       setHasError(true);
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setLoading(false);
     }
   }, [showAll, debouncedQuery]);
 
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
     
     const loadData = async () => {
-      if (isMounted) {
+      if (!cancelled) {
         await fetchInvestigations(currentPage);
       }
     };
@@ -73,7 +75,7 @@ const Investigations = () => {
     loadData();
     
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
   }, [currentPage, fetchInvestigations]);
 
@@ -85,6 +87,12 @@ const Investigations = () => {
       setCurrentPage(1);
     }, 400);
   };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleToggleShowAll = (checked: boolean) => {
     setShowAll(checked);
