@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Loader2, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Eye, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -9,9 +9,12 @@ import GlassMorphicCard from '@/components/GlassMorphicCard';
 import TransitionWrapper from '@/components/TransitionWrapper';
 import ErrorBanner from '@/components/ErrorBanner';
 import withAuth from '@/utils/withAuth';
-import { getInvestigationsPaginated, formatInvestigationTime, type Investigation, type InvestigationsResponse } from '@/services/investigationService';
+import { getInvestigationsPaginated, formatInvestigationDateTime, formatDuration, truncateText, type Investigation, type InvestigationsResponse } from '@/services/investigationService';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const Investigations = () => {
   const navigate = useNavigate();
@@ -20,23 +23,27 @@ const Investigations = () => {
   const [investigationsData, setInvestigationsData] = useState<InvestigationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const itemsPerPage = 10;
 
-  const fetchInvestigations = async (page: number) => {
+  const fetchInvestigations = useCallback(async (page: number) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       setLoading(true);
       setHasError(false);
       
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 30000) // 30 second timeout
-      );
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Request timeout')), 30000);
+      });
       
-      const dataPromise = getInvestigationsPaginated(page, itemsPerPage);
+      const statusFilter = showAll ? 'all' : 'completed';
+      const dataPromise = getInvestigationsPaginated(page, itemsPerPage, statusFilter, debouncedQuery || undefined);
       
       const data = await Promise.race([dataPromise, timeoutPromise]) as InvestigationsResponse;
       
-      // Filter out investigations without episode_id on client side to be safe
       const filteredData = {
         ...data,
         investigations: data.investigations.filter(inv => inv.episode_id && inv.episode_id.trim() !== '')
@@ -51,15 +58,16 @@ const Investigations = () => {
       setErrorMessage(errorMsg);
       setHasError(true);
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setLoading(false);
     }
-  };
+  }, [showAll, debouncedQuery]);
 
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
     
     const loadData = async () => {
-      if (isMounted) {
+      if (!cancelled) {
         await fetchInvestigations(currentPage);
       }
     };
@@ -67,9 +75,29 @@ const Investigations = () => {
     loadData();
     
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, [currentPage]);
+  }, [currentPage, fetchInvestigations]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(value);
+      setCurrentPage(1);
+    }, 400);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const handleToggleShowAll = (checked: boolean) => {
+    setShowAll(checked);
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -135,6 +163,28 @@ const Investigations = () => {
                   View all system investigations, diagnostic reports, and analysis results.
                 </p>
               </div>
+
+              {/* Search & Filters */}
+              <div className="mb-6 space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search by prompt, agent name, or agent ID..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show-all"
+                    checked={showAll}
+                    onCheckedChange={handleToggleShowAll}
+                  />
+                  <Label htmlFor="show-all" className="text-sm">Show all statuses (including pending, in-progress, failed)</Label>
+                </div>
+              </div>
               
               {loading ? (
                 <div className="flex justify-center items-center h-64">
@@ -156,7 +206,7 @@ const Investigations = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <h3 className="font-medium text-sm">{investigation.user_prompt || 'No prompt'}</h3>
+                                <h3 className="font-medium text-sm">{truncateText(investigation.user_prompt || 'No prompt', 500)}</h3>
                                 <div className="flex flex-col gap-1 mt-1">
                                   <p className="text-xs text-muted-foreground">
                                     <span className="font-semibold">ID:</span> {investigation.id}
@@ -180,7 +230,7 @@ const Investigations = () => {
                                   </Badge>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {formatInvestigationTime(investigation.initiated_at)}
+                                  {formatInvestigationDateTime(investigation.initiated_at)}
                                 </span>
                                 <Button
                                   size="sm"
@@ -193,12 +243,22 @@ const Investigations = () => {
                               </div>
                             </div>
                             
-                            <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                              <span>Agent: {investigation.agent?.id || 'N/A'}</span>
+                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              {investigation.initiated_at && (
+                                <span>Initiated: {formatInvestigationDateTime(investigation.initiated_at)}</span>
+                              )}
+                              {investigation.completed_at && (
+                                <span>Completed: {formatInvestigationDateTime(investigation.completed_at)}</span>
+                              )}
+                              {investigation.initiated_at && investigation.completed_at && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  Duration: {formatDuration(investigation.initiated_at, investigation.completed_at)}
+                                </span>
+                              )}
                               {investigation.inference_count !== undefined && (
                                 <span>Inferences: {investigation.inference_count}</span>
                               )}
-                              <span>Episode: {investigation.episode_id?.substring(0, 8)}...</span>
                             </div>
                             
                             {investigation.resolution_plan && (

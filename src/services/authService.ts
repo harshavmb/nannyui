@@ -191,14 +191,17 @@ export const isOAuthUser = async (): Promise<boolean> => {
 };
 
 /**
- * Get current user
+ * Get current user - fetches fresh data from PocketBase to ensure all fields are up-to-date
  */
 export const getCurrentUser = async (): Promise<UserRecord | null> => {
   try {
-    if (!pb.authStore.isValid) return null;
-    return pb.authStore.record as unknown as UserRecord;
+    if (!pb.authStore.isValid || !pb.authStore.record) return null;
+    // Fetch fresh user record from server to get all fields (verified, created, updated, etc.)
+    const record = await pb.collection('users').getOne(pb.authStore.record.id);
+    return record as unknown as UserRecord;
   } catch {
-    return null;
+    // Fallback to cached auth store record
+    return pb.authStore.record as unknown as UserRecord;
   }
 };
 
