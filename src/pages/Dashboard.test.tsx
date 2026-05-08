@@ -77,7 +77,9 @@ vi.mock('@/services/authService', () => ({
 
 vi.mock('@/services/investigationService', () => ({
   getRecentInvestigationsFromAPI: vi.fn(),
-  formatInvestigationTime: vi.fn()
+  formatInvestigationDateTime: vi.fn((time: string) => time || 'N/A'),
+  formatDuration: vi.fn(() => 'N/A'),
+  truncateText: vi.fn((text: string) => text),
 }));
 
 vi.mock('@/services/statsService', () => ({

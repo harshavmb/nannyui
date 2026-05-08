@@ -14,7 +14,7 @@ import { UsageConsumption } from '@/components/UsageConsumption';
 import withAuth from '@/utils/withAuth';
 import { placeholderStats } from '@/mocks/placeholderData';
 import { getCurrentUser, getCurrentSession } from '@/services/authService';
-import { getRecentInvestigationsFromAPI, formatInvestigationTime, type Investigation } from '@/services/investigationService';
+import { getRecentInvestigationsFromAPI, formatInvestigationDateTime, formatDuration, truncateText, type Investigation } from '@/services/investigationService';
 import { getDashboardStats } from '@/services/statsService';
 import { getUserUsage, getPricingTiers, type UsageData, type PricingResponse } from '@/services/pricingService';
 import { useNavigate } from 'react-router-dom';
@@ -211,14 +211,18 @@ const Dashboard = () => {
                       <div className="space-y-4">
                         {investigations.length > 0 ? (
                           investigations.map((investigation: Investigation) => (
-                            <div key={investigation.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                            <div 
+                              key={investigation.id} 
+                              className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                              onClick={() => navigate(`/investigations/${investigation.id}`)}
+                            >
                               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                 <Server className="h-4 w-4 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm truncate">{investigation.user_prompt}</h4>
+                                <h4 className="font-medium text-sm">{truncateText(investigation.user_prompt || 'No prompt', 200)}</h4>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  ID: {investigation.id}
+                                  Agent: {investigation.agent?.hostname || investigation.agent_id}
                                 </p>
                                 <div className="flex items-center space-x-2 mt-2">
                                   <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -236,9 +240,15 @@ const Dashboard = () => {
                                   }`}>
                                     {investigation.status.replace('_', ' ')}
                                   </span>
+                                  {investigation.initiated_at && investigation.completed_at && (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {formatDuration(investigation.initiated_at, investigation.completed_at)}
+                                    </span>
+                                  )}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {formatInvestigationTime(investigation.initiated_at)}
+                                  {formatInvestigationDateTime(investigation.completed_at || investigation.initiated_at)}
                                 </p>
                               </div>
                             </div>

@@ -14,13 +14,11 @@ import withAuth from '@/utils/withAuth';
 import { getCurrentUser, getCurrentSession, isMFAEnabled, getUserAuthProviders } from '@/services/authService';
 import type { UserRecord } from '@/integrations/pocketbase/types';
 
-// Extended user record to include fields not yet in the backend type definition
+// Extended user record to include fields from PocketBase auth store
 interface ExtendedUserRecord extends UserRecord {
-  email_confirmed_at?: string;
   phone?: string;
-  phone_confirmed_at?: string;
   role?: string;
-  last_sign_in_at?: string;
+  lastLogin?: string;
 }
 
 export const Account = () => {
@@ -199,26 +197,19 @@ export const Account = () => {
                         <p className="text-xs text-muted-foreground">{formatDate(user?.updated)}</p>
                       </div>
                     </div>
-                    {user?.email_confirmed_at && (
-                      <div className="flex items-start">
-                        <Mail className="h-4 w-4 text-muted-foreground mr-3 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Email Confirmed</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(user?.email_confirmed_at)}</p>
-                        </div>
+                    <div className="flex items-start">
+                      <Mail className="h-4 w-4 text-muted-foreground mr-3 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Email Verified</p>
+                        <p className="text-xs text-muted-foreground">{user?.verified ? 'Yes' : 'No'}</p>
                       </div>
-                    )}
+                    </div>
                     {user?.phone && (
                       <div className="flex items-start">
                         <Smartphone className="h-4 w-4 text-muted-foreground mr-3 mt-0.5" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Phone Number</p>
                           <p className="text-xs text-muted-foreground">{user.phone}</p>
-                          {user?.phone_confirmed_at && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Confirmed: {formatDate(user.phone_confirmed_at)}
-                            </p>
-                          )}
                         </div>
                       </div>
                     )}
@@ -265,22 +256,14 @@ export const Account = () => {
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Last Sign In
                       </label>
-                      <p className="text-sm">{formatDate(user?.last_sign_in_at)}</p>
+                      <p className="text-sm">{formatDate(user?.updated)}</p>
                     </div>
-                    {user?.email_confirmed_at && (
+                    {user?.phone && (
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Email Confirmed At
+                          Phone Verified
                         </label>
-                        <p className="text-sm">{formatDate(user.email_confirmed_at)}</p>
-                      </div>
-                    )}
-                    {user?.phone_confirmed_at && (
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Phone Confirmed At
-                        </label>
-                        <p className="text-sm">{formatDate(user.phone_confirmed_at)}</p>
+                        <p className="text-sm">Not verified</p>
                       </div>
                     )}
                     <div className="space-y-1">
@@ -405,11 +388,11 @@ export const Account = () => {
                         <div className="ml-4 flex-1">
                           <h4 className="font-medium">Email Verification</h4>
                           <div className="flex items-center mt-2">
-                            {user?.email_confirmed_at ? (
+                            {user?.verified ? (
                               <>
                                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                                 <span className="text-sm text-muted-foreground">
-                                  Email verified on {formatDate(user.email_confirmed_at)}
+                                  Email verified
                                 </span>
                               </>
                             ) : (
@@ -435,22 +418,11 @@ export const Account = () => {
                           <div className="ml-4 flex-1">
                             <h4 className="font-medium">Phone Verification</h4>
                             <div className="flex items-center mt-2">
-                              {user?.phone_confirmed_at ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                  <span className="text-sm text-muted-foreground">
-                                    Phone verified on {formatDate(user.phone_confirmed_at)}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="h-4 w-4 text-yellow-500 mr-2" />
-                                  <span className="text-sm text-muted-foreground">Phone not verified</span>
-                                  <button className="ml-4 text-sm text-primary hover:underline">
-                                    Verify phone number
-                                  </button>
-                                </>
-                              )}
+                              <XCircle className="h-4 w-4 text-yellow-500 mr-2" />
+                              <span className="text-sm text-muted-foreground">Phone not verified</span>
+                              <button className="ml-4 text-sm text-primary hover:underline">
+                                Verify phone number
+                              </button>
                             </div>
                           </div>
                         </div>

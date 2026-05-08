@@ -7,6 +7,9 @@ import {
   getPriorityColor,
   getStatusColor,
   formatInvestigationTime,
+  formatInvestigationDateTime,
+  formatDuration,
+  truncateText,
   isInvestigationRunning,
   isInvestigationCompleted,
   isInvestigationFailed,
@@ -63,7 +66,7 @@ describe("investigationService", () => {
       expect(result).toEqual([]);
       expect(pb.collection).toHaveBeenCalledWith("investigations");
       expect(pb.collection("investigations").getList).toHaveBeenCalledWith(1, 5, {
-        sort: "-id",
+        sort: "-completed_at",
         expand: "agent_id",
         filter: 'user_id = "user-123"',
       });
@@ -221,6 +224,83 @@ describe("investigationService", () => {
       const result = await getInvestigationsPaginated(1, 10);
       expect(result.investigations).toEqual([]);
       expect(pb.collection).toHaveBeenCalledWith("investigations");
+    });
+
+    it("should pass status filter to API", async () => {
+      await getInvestigationsPaginated(1, 10, 'completed');
+      expect(pb.collection("investigations").getList).toHaveBeenCalledWith(1, 10, {
+        filter: 'user_id = "user-123" && status = "completed"',
+        sort: "-completed_at",
+        expand: "agent_id",
+      });
+    });
+
+    it("should pass search query to API matching prompt and agent", async () => {
+      await getInvestigationsPaginated(1, 10, 'all', 'pve2');
+      expect(pb.collection("investigations").getList).toHaveBeenCalledWith(1, 10, {
+        filter: 'user_id = "user-123" && (user_prompt ~ "pve2" || agent_id.hostname ~ "pve2" || agent_id = "pve2")',
+        sort: "-completed_at",
+        expand: "agent_id",
+      });
+    });
+  });
+
+  describe("formatInvestigationDateTime", () => {
+    it("should return N/A for empty string", () => {
+      expect(formatInvestigationDateTime('')).toBe('N/A');
+    });
+
+    it("should format valid date with full datetime", () => {
+      const result = formatInvestigationDateTime('2024-06-15T14:30:00Z');
+      expect(result).toBeTruthy();
+      expect(result).not.toBe('N/A');
+      expect(result).toContain('Jun');
+      expect(result).toContain('15');
+      expect(result).toContain('2024');
+    });
+  });
+
+  describe("formatDuration", () => {
+    it("should return N/A for null start", () => {
+      expect(formatDuration(null, '2024-01-01T00:00:00Z')).toBe('N/A');
+    });
+
+    it("should return N/A for null end", () => {
+      expect(formatDuration('2024-01-01T00:00:00Z', null)).toBe('N/A');
+    });
+
+    it("should format seconds correctly", () => {
+      expect(formatDuration('2024-01-01T00:00:00Z', '2024-01-01T00:00:30Z')).toBe('30s');
+    });
+
+    it("should format minutes and seconds correctly", () => {
+      expect(formatDuration('2024-01-01T00:00:00Z', '2024-01-01T00:05:30Z')).toBe('5m 30s');
+    });
+
+    it("should format hours and minutes correctly", () => {
+      expect(formatDuration('2024-01-01T00:00:00Z', '2024-01-01T02:15:00Z')).toBe('2h 15m');
+    });
+  });
+
+  describe("truncateText", () => {
+    it("should return text as-is when under limit", () => {
+      expect(truncateText('short text')).toBe('short text');
+    });
+
+    it("should truncate text over 500 chars with ellipsis", () => {
+      const longText = 'A'.repeat(600);
+      const result = truncateText(longText);
+      expect(result.length).toBe(503); // 500 + '...'
+      expect(result.endsWith('...')).toBe(true);
+    });
+
+    it("should respect custom max length", () => {
+      const result = truncateText('Hello World', 5);
+      expect(result).toBe('Hello...');
+    });
+
+    it("should handle empty string", () => {
+      expect(truncateText('')).toBe('');
     });
   });
 });

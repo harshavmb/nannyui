@@ -202,4 +202,76 @@ describe('Account', () => {
       expect(screen.getByText(/Enable 2FA in your Google account settings/i)).toBeInTheDocument();
     });
   });
+
+  it('shows email verified status when user is verified', async () => {
+    (authService.getCurrentUser as any).mockResolvedValue({
+      ...mockUser,
+      verified: true,
+    });
+
+    render(
+      <BrowserRouter>
+        <Account />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Email verified')).toBeInTheDocument();
+    });
+  });
+
+  it('shows email not verified when user is not verified', async () => {
+    (authService.getCurrentUser as any).mockResolvedValue({
+      ...mockUser,
+      verified: false,
+    });
+
+    render(
+      <BrowserRouter>
+        <Account />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Email not verified')).toBeInTheDocument();
+    });
+  });
+
+  it('displays account created date from user.created field', async () => {
+    (authService.getCurrentUser as any).mockResolvedValue({
+      ...mockUser,
+      created: '2023-06-15T14:30:00Z',
+    });
+
+    render(
+      <BrowserRouter>
+        <Account />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      const joinedLabels = screen.getAllByText('Joined');
+      expect(joinedLabels.length).toBeGreaterThan(0);
+      // Should show the formatted date, not 'N/A'
+      expect(screen.queryByText('N/A')).not.toBeInTheDocument();
+    });
+  });
+
+  it('displays last sign in date from user.updated field', async () => {
+    (authService.getCurrentUser as any).mockResolvedValue({
+      ...mockUser,
+      updated: '2024-01-10T09:00:00Z',
+    });
+
+    render(
+      <BrowserRouter>
+        <Account />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      const lastSignInLabels = screen.getAllByText('Last Sign In');
+      expect(lastSignInLabels.length).toBeGreaterThan(0);
+    });
+  });
 });

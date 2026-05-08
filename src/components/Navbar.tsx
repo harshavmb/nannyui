@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, User, Search, ChevronDown } from 'lucide-react';
+import { Bell, User, Search, ChevronDown, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getCurrentUser } from '@/services/authService';
+import { getCurrentUser, signOut } from '@/services/authService';
 import { useNotifications } from '@/contexts/NotificationContext';
 import {
   DropdownMenu,
@@ -139,6 +139,17 @@ const Navbar: React.FC = () => {
                   <Bell className="h-4 w-4 mr-2" />
                   Static Tokens
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="cursor-pointer text-red-600 focus:text-red-600"
+                onClick={async () => {
+                  await signOut();
+                  navigate('/login');
+                }}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

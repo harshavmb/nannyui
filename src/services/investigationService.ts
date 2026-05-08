@@ -26,6 +26,7 @@ export interface Investigation {
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   resolution_plan: string;
   initiated_at: string;
+  investigated_at: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -59,6 +60,8 @@ export interface InvestigationsResponse {
 export const getInvestigationsPaginated = async (
   page: number = 1, 
   limit: number = 5,
+  statusFilter?: string,
+  searchQuery?: string,
 ): Promise<InvestigationsResponse> => {
   try {
     const user = pb.authStore.record;
@@ -69,9 +72,18 @@ export const getInvestigationsPaginated = async (
       };
     }
 
+    const filters: string[] = [`user_id = "${user.id}"`];
+    if (statusFilter && statusFilter !== 'all') {
+      filters.push(`status = "${statusFilter}"`);
+    }
+    if (searchQuery) {
+      // Search across user_prompt, agent hostname (via relation), and agent_id
+      filters.push(`(user_prompt ~ "${searchQuery}" || agent_id.hostname ~ "${searchQuery}" || agent_id = "${searchQuery}")`);
+    }
+
     const result = await pb.collection('investigations').getList(page, limit, {
-      filter: `user_id = "${user.id}"`,
-      sort: '-id', // Changed from -created
+      filter: filters.join(' && '),
+      sort: '-completed_at',
       expand: 'agent_id',
     });
 
@@ -305,6 +317,46 @@ export const formatInvestigationTime = (createdAt: string): string => {
     day: 'numeric',
     year: investigationDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
   });
+};
+
+/**
+ * Format investigation time for list display with full date and time
+ */
+export const formatInvestigationDateTime = (dateStr: string): string => {
+  if (!dateStr) return 'N/A';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+/**
+ * Format duration between two dates
+ */
+export const formatDuration = (start: string | null, end: string | null): string => {
+  if (!start || !end) return 'N/A';
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const diffMs = endDate.getTime() - startDate.getTime();
+  if (diffMs < 0) return 'N/A';
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffSecs < 60) return `${diffSecs}s`;
+  if (diffMins < 60) return `${diffMins}m ${diffSecs % 60}s`;
+  return `${diffHours}h ${diffMins % 60}m`;
+};
+
+/**
+ * Truncate text to max length with ellipsis
+ */
+export const truncateText = (text: string, maxLength: number = 500): string => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 };
 
 /**
